@@ -3,3 +3,16 @@
 
 # Packaging
 .cask
+
+# User-defined packages which will cause trouble
+recentf
+savehist
+.DS_Store
+projectile-bookmarks.eld
+
+# Temporary files
+session*
+*~
+[#]*[#]
+
+
