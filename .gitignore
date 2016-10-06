@@ -5,10 +5,13 @@
 .cask
 
 # User-defined packages which will cause trouble
-recentf
-savehist
+/recentf
+/savehist
+/eshell
+/auto-save-list
 .DS_Store
 projectile-bookmarks.eld
+projectile.cache
 
 # Temporary files
 session*

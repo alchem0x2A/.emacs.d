@@ -29,4 +29,5 @@
 (load "helm_conf.el")
 (load "projectile_conf.el")
 (load "ui.el")
-
+(load "magit_conf.el")
+(load "editor.el")
