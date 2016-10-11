@@ -31,5 +31,3 @@
 (load "ui.el")
 (load "magit_conf.el")
 (load "editor.el")
-(load "python_conf.el")
-(load "c_cpp_conf.el")

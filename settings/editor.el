@@ -52,11 +52,3 @@
   (end-of-line) ; move to end of line
   (set-mark (line-beginning-position)))
 (global-set-key (kbd "s-l") 'select-current-line)
-
-
-;; Bind the comment and uncomment of current line / selected region s-/
-;; Only works for emacs 25.1 +
-;; Normal in-line comment is still binded to M-;
-
-(when (not (version< emacs-version "25.0"))
-  (global-set-key (kbd "s-/") 'comment-line))
