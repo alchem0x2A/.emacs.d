@@ -1,3 +1,4 @@
+
 ;;Setting the UI of emacs
 
 ;;Disable srgb colorspace when emacs > 24.4.5
@@ -26,11 +27,15 @@
 (global-linum-mode t)
 
 
-;;Smooth scroll
-(require 'sublimity)
-(require 'sublimity-scroll)
+;;Set C-v and M-v to scroll half page
 
-(sublimity-mode t)
+
+;;Scrolling
+
+(require 'smooth-scrolling)
+(smooth-scrolling-mode t)
+(setq mouse-wheel-progressive-speed nil)
+
 
 ;; disable startup screen
 (setq inhibit-startup-screen t)
