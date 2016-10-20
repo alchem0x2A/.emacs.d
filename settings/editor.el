@@ -13,6 +13,9 @@
 ;;   (undo))
 ;; (global-set-key (kbd "s-Z") 'redo-undo)
 
+;;Copy and paste facilities
+(global-set-key [remap ns-copy-including-secondary] 'kill-ring-save)
+
 
 ;;Use Cmd+arrow to move to beginning and end of a line
 (global-set-key (kbd "s-<left>") 'move-beginning-of-line)
@@ -25,12 +28,43 @@
 (global-set-key (kbd "M-<down>") 'scroll-up-command)
 
 ;;Normal OS X like kill behavior with Cmd + delete
-(defun backward-kill-line (arg)
-  "Kill ARG lines backward."
+;; TODO: add the killed region to the second place of the kill ring?
+(defun dont-save-kill-ring ()
+  (setq kill-ring (cdr kill-ring)
+	))
+
+(defun backward-delete-line (arg)
+  "Delete ARG lines backward."
   (interactive "p")
-  (kill-line (- 1 arg)))
-(global-set-key (kbd "s-<backspace>") 'backward-kill-line)
-(global-set-key (kbd "s-<kp-delete>") 'kill-line)
+  (kill-line (- 1 arg))
+  (dont-save-kill-ring)
+  )
+
+(defun forward-delete-line (arg)
+  "Delete the rest part of the line"
+  (interactive "p")
+  (kill-line arg)
+  (dont-save-kill-ring)
+  )
+
+(defun backward-delete-word (arg)
+  "Delete the word backwords"
+  (interactive "p")
+  (backward-kill-word arg)
+  (dont-save-kill-ring)
+  )
+
+;; ;; (defun forward-delete-word (arg)
+;;   "Delete the word forward"
+;;   (for)
+;;   )
+
+
+
+(global-set-key (kbd "s-<backspace>") 'backward-delete-line)
+(global-set-key (kbd "s-<kp-delete>") 'forward-delete-line)
+
+(global-set-key [remap backward-kill-word] 'backward-delete-word)
 
 ;;Move windows via arrow keys
 (global-set-key (kbd "M-s-<up>") 'windmove-up)
@@ -51,6 +85,7 @@
   (interactive)
   (end-of-line) ; move to end of line
   (set-mark (line-beginning-position)))
+
 (global-set-key (kbd "s-l") 'select-current-line)
 
 
@@ -60,3 +95,7 @@
 
 (when (not (version< emacs-version "25.0"))
   (global-set-key (kbd "s-/") 'comment-line))
+
+
+;; Enable fast file mark in split dired windows
+(setq dired-dwim-target t)
