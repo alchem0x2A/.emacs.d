@@ -21,5 +21,5 @@ session*
 *pyc
 /.org-id-locations
 /tramp
-/elpa/2048-game-20151026.1233/2048-game-autoloads.el
-/elpa/2048-game-20151026.1233/2048-game-pkg.el
+/elpa
+/irony
