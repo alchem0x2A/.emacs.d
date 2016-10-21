@@ -56,3 +56,10 @@
 ;; Fixed image width
 ;; Only works when ImageMagic is supported
 (setq org-image-actual-width '(400))
+
+;; Enable support for inline eps files
+(add-to-list 'image-type-file-name-regexps '("\\.pdf\\'" . imagemagick)  )
+(add-to-list 'image-type-file-name-regexps '("\\.eps\\'" . imagemagick)  )
+(add-to-list 'image-file-name-extensions "pdf")
+(add-to-list 'image-file-name-extensions "eps")
+(setq imagemagick-types-inhibit (remove 'PDF imagemagick-types-inhibit))
