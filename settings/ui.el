@@ -25,7 +25,12 @@
 
 ;;Enable linum mode globally
 (global-linum-mode t)
+(eval-after-load "linum"
+  '(set-face-attribute 'linum nil :height 120))
 
+;; Change font size
+(global-set-key (kbd "s-=") 'text-scale-increase)
+(global-set-key (kbd "s--") 'text-scale-decrease)
 
 ;;Set C-v and M-v to scroll half page
 
