@@ -1,3 +1,7 @@
+;; Use inline-tasks for TODO entries
+;; C-c C-x t will work
+(require 'org-inlinetask)
+
 ;; Global key settings for the org mode
 
 (global-set-key (kbd "C-c l") 'org-store-link)
@@ -63,3 +67,22 @@
 (add-to-list 'image-file-name-extensions "pdf")
 (add-to-list 'image-file-name-extensions "eps")
 (setq imagemagick-types-inhibit (remove 'PDF imagemagick-types-inhibit))
+
+;; Highlight the LaTeX and source code
+(setq org-src-fontify-natively t)
+
+
+;; Default Latex Output
+(setq org-export-with-smart-quotes t)
+
+;; Smart insert label in LaTeX using helm
+(define-key org-mode-map (kbd "C-c C-r") nil)
+(global-unset-key (kbd "C-c C-r"))
+(define-key org-mode-map (kbd "C-c C-r l") 'org-ref-insert-ref-link)
+(define-key org-mode-map (kbd "C-c C-r C-l") 'org-ref-insert-ref-link)
+(define-key org-mode-map (kbd "C-c r l") 'org-ref-insert-ref-link)
+(define-key org-mode-map (kbd "C-c r C-l") 'org-ref-insert-ref-link)
+
+;; Startup functions
+(setq org-startup-with-latex-preview t)
+(setq org-startup-with-inline-images t)
