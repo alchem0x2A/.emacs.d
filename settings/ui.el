@@ -25,7 +25,13 @@
 
 ;;Enable linum mode globally
 (global-linum-mode t)
+(eval-after-load "linum"
+  '(set-face-attribute 'linum nil :height 120))
+;; (setq linum-format "%d ")
 
+;; Change font size
+(global-set-key (kbd "s-=") 'text-scale-increase)
+(global-set-key (kbd "s--") 'text-scale-decrease)
 
 ;;Set C-v and M-v to scroll half page
 
@@ -43,3 +49,22 @@
 
 ;;Always enable paranthes match
 (show-paren-mode t)
+
+;; font
+(when (eq system-type 'darwin)
+
+      ;; default Latin font (e.g. Consolas)
+      (set-face-attribute 'default nil :family "Monaco")
+
+      ;; default font size (point * 10)
+      ;;
+      ;; WARNING!  Depending on the default font,
+      ;; if the size is not supported very well, the frame will be clipped
+      ;; so that the beginning of the buffer may not be visible correctly. 
+      (set-face-attribute 'default nil :height 120)
+
+      ;; you may want to add different for other charset in this way.
+      )
+
+(add-to-list 'default-frame-alist '(height . 60))
+(add-to-list 'default-frame-alist '(width . 150))

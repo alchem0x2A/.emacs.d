@@ -19,9 +19,7 @@ session*
 [#]*[#]
 *.pyc
 *pyc
-<<<<<<< HEAD
-*.pyc
-=======
-/.org-id-locations
-/tramp
->>>>>>> 1a996df6ca53e65ac8a7cc706390a57bceff7bd5
+/elpa
+/irony
+/srecode-map.el
+
