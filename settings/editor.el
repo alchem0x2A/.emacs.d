@@ -6,6 +6,8 @@
 (global-set-key (kbd "s-S") 'write-file)
 ;;Oevrwrite the default s-o with emacs-like open
 (global-set-key (kbd "s-o") 'helm-find-files)
+;; Use global compile command
+(global-set-key (kbd "s-b") 'compile)
 ;;Invoke redo function as normal text editors
 ;; (defun redo-undo ()
 ;;   (interactive)
