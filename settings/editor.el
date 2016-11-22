@@ -1,5 +1,11 @@
 ;;Editor setting and global keybindings for os x like other editors
 
+;; Enable visual-line-mode for default
+(visual-fill-column-mode t)
+(setq line-move-visual nil)
+(setq visual-fill-column-width 80)
+
+
 ;;Overwrite original "s-w" behavior from close the frame to close the buffer and window (more intuitive to me)
 (global-set-key (kbd "s-w") 'kill-buffer-and-window)
 ;;Overwrite the default s-S which open the system panel

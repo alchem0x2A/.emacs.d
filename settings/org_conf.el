@@ -1,6 +1,7 @@
 ;; Use inline-tasks for TODO entries
 ;; C-c C-x t will work
 (require 'org-inlinetask)
+
 ;; Use org mode html output for emails
 
 
@@ -17,7 +18,8 @@
 (add-hook 'org-mode-hook (lambda ()
 			   (setq ispell-parser 'tex)))
 (add-hook 'org-mode-hook 'flyspell-ignore-tex)
-(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+(add-hook 'org-mode-hook 'turn-on-cdlatex)
+(add-hook 'org-mode-hook 'visual-line-mode)
 
 
 ;; Useful function to add a code block
@@ -92,7 +94,7 @@
 (setq org-startup-indented t)
 
 ;; Disable automatic export
-(setq org-export-babel-evaluate nil)
+(setq org-export-babel-evaluate t)
 
 ;; Do not use flycheck on org source code block for python
 ;; (defun org-disable-flycheck-source-block
