@@ -1,11 +1,19 @@
 ;;Editor setting and global keybindings for os x like other editors
 
+;; Enable visual-line-mode for default
+(visual-fill-column-mode t)
+(setq line-move-visual nil)
+(setq visual-fill-column-width 80)
+
+
 ;;Overwrite original "s-w" behavior from close the frame to close the buffer and window (more intuitive to me)
 (global-set-key (kbd "s-w") 'kill-buffer-and-window)
 ;;Overwrite the default s-S which open the system panel
 (global-set-key (kbd "s-S") 'write-file)
 ;;Oevrwrite the default s-o with emacs-like open
 (global-set-key (kbd "s-o") 'helm-find-files)
+;; Use global compile command
+(global-set-key (kbd "s-b") 'compile)
 ;;Invoke redo function as normal text editors
 ;; (defun redo-undo ()
 ;;   (interactive)

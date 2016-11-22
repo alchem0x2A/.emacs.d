@@ -2,6 +2,9 @@
 ;; C-c C-x t will work
 (require 'org-inlinetask)
 
+;; Use org mode html output for emails
+
+
 ;; Global key settings for the org mode
 
 (global-set-key (kbd "C-c l") 'org-store-link)
@@ -15,7 +18,8 @@
 (add-hook 'org-mode-hook (lambda ()
 			   (setq ispell-parser 'tex)))
 (add-hook 'org-mode-hook 'flyspell-ignore-tex)
-(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+(add-hook 'org-mode-hook 'turn-on-cdlatex)
+(add-hook 'org-mode-hook 'visual-line-mode)
 
 
 ;; Useful function to add a code block
@@ -48,7 +52,8 @@
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((python . t)
-   ))
+   (latex . t))
+   )
 
 ;; Set TODO keywords
 (setq org-todo-keywords
@@ -86,3 +91,67 @@
 ;; Startup functions
 (setq org-startup-with-latex-preview t)
 (setq org-startup-with-inline-images t)
+(setq org-startup-indented t)
+
+;; Disable automatic export
+(setq org-export-babel-evaluate t)
+
+;; Do not use flycheck on org source code block for python
+;; (defun org-disable-flycheck-source-block
+;;     (setq-local flycheck-disabled-checkers '(python-flake8)))
+
+;; (add-hook 'org-src-mode-hook 'org-disable-flycheck-source-block)
+
+;; Enable inline pdf display by redifining the org-display-inline-images method
+;; [[http://stackoverflow.com/questions/15407485/inline-pdf-images-in-org-mode]]
+(setq org-imagemagick-display-command "convert -density 600 \"%s\" -thumbnail \"%sx%s>\" \"%s\"")
+(defun org-display-inline-images (&optional include-linked refresh beg end)
+  "Display inline images.
+Normally only links without a description part are inlined, because this
+is how it will work for export.  When INCLUDE-LINKED is set, also links
+with a description part will be inlined.  This
+can be nice for a quick
+look at those images, but it does not reflect what exported files will look
+like.
+When REFRESH is set, refresh existing images between BEG and END.
+This will create new image displays only if necessary.
+BEG and END default to the buffer boundaries."
+  (interactive "P")
+  (unless refresh
+    (org-remove-inline-images)
+    (if (fboundp 'clear-image-cache) (clear-image-cache)))
+  (save-excursion
+    (save-restriction
+      (widen)
+      (setq beg (or beg (point-min)) end (or end (point-max)))
+      (goto-char beg)
+      (let ((re (concat "\\[\\[\\(\\(file:\\)\\|\\([./~]\\)\\)\\([^]\n]+?"
+                        (substring (org-image-file-name-regexp) 0 -2)
+                        "\\)\\]" (if include-linked "" "\\]")))
+            old file ov img)
+        (while (re-search-forward re end t)
+          (setq old (get-char-property-and-overlay (match-beginning 1)
+                                                   'org-image-overlay)
+        file (expand-file-name
+                      (concat (or (match-string 3) "") (match-string 4))))
+          (when (file-exists-p file)
+            (let ((file-thumb (format "%s%s_thumb.png" (file-name-directory file) (file-name-base file))))
+              (if (file-exists-p file-thumb)
+                  (let ((thumb-time (nth 5 (file-attributes file-thumb 'string)))
+                        (file-time (nth 5 (file-attributes file 'string))))
+                    (if (time-less-p thumb-time file-time)
+            (shell-command (format org-imagemagick-display-command
+                           file org-image-actual-width org-image-actual-width file-thumb) nil nil)))
+                (shell-command (format org-imagemagick-display-command
+                                         file org-image-actual-width org-image-actual-width file-thumb) nil nil))
+              (if (and (car-safe old) refresh)
+                  (image-refresh (overlay-get (cdr old) 'display))
+                (setq img (save-match-data (create-image file-thumb)))
+                (when img
+                  (setq ov (make-overlay (match-beginning 0) (match-end 0)))
+                  (overlay-put ov 'display img)
+                  (overlay-put ov 'face 'default)
+                  (overlay-put ov 'org-image-overlay t)
+                  (overlay-put ov 'modification-hooks
+                               (list 'org-display-inline-remove-overlay))
+                  (push ov org-inline-image-overlays))))))))))
