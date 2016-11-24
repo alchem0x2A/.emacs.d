@@ -155,3 +155,26 @@ BEG and END default to the buffer boundaries."
                   (overlay-put ov 'modification-hooks
                                (list 'org-display-inline-remove-overlay))
                   (push ov org-inline-image-overlays))))))))))
+
+;; Change default python header in org source block
+(setq org-babel-default-header-args:python
+      (cons '(:results . "output org drawer replace")
+            (assq-delete-all :results org-babel-default-header-args)))
+
+
+;; Define colored outpur for TODO keywords
+
+(defun org-latex-format-headline-colored-keywords-function
+    (todo todo-type priority text tags info)
+        (concat
+	 (cond ((string= todo "ON-GOING")(and todo (format "{\\color{orange}\\bfseries\\sffamily %s} " todo)))
+	  ((string= todo "TODO")(and todo (format "{\\color{red}\\bfseries\\sffamily %s} " todo)))
+   ((string= todo "DONE")(and todo (format "{\\color{green}\\bfseries\\sffamily %s} " todo))))
+            (and priority (format "\\framebox{\\#%c} " priority))
+            text
+            (and tags
+            (format "\\hfill{}\\textsc{%s}"
+    (mapconcat (lambda (tag) (org-latex-plain-text tag info))
+           tags ":")))))
+
+(setq org-latex-format-headline-function 'org-latex-format-headline-colored-keywords-function)

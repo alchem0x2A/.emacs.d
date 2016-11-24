@@ -34,7 +34,8 @@
 ;;Use flycheck instead of flymake for pep8 check
 (when (require 'flycheck nil t)
   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-  (add-hook 'elpy-mode-hook 'flycheck-mode))
+  ;; (add-hook 'elpy-mode-hook 'flycheck-mode)
+  )
 
 ;;Enable auto pep8 on save
 (require 'py-autopep8)
