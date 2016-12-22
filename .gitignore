@@ -24,3 +24,4 @@ session*
 /srecode-map.el
 
 /.org-id-locations
+/tramp
