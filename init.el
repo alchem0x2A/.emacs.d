@@ -50,7 +50,7 @@
     ("~/polybox/Research/6-vdW-transparency/transparency_2D.org")))
  '(package-selected-packages
    (quote
-    (ox-pandoc visual-fill-column org 2048-game cdlatex company-irony company-irony-c-headers flycheck-irony irony org-ref sublimity smooth-scrolling smart-mode-line-powerline-theme python-mode pyenv-mode py-autopep8 neotree moe-theme minimap matlab-mode magit latex-unicode-math-mode jedi helm-projectile helm-ls-git helm-gtags helm-flx ggtags flycheck flx-isearch exec-path-from-shell elpy auctex-latexmk 0blayout))))
+    (org org-ref ox-pandoc visual-fill-column 2048-game cdlatex company-irony company-irony-c-headers flycheck-irony irony sublimity smooth-scrolling smart-mode-line-powerline-theme python-mode pyenv-mode py-autopep8 neotree moe-theme minimap matlab-mode magit latex-unicode-math-mode jedi helm-projectile helm-ls-git helm-gtags helm-flx ggtags flycheck flx-isearch exec-path-from-shell elpy auctex-latexmk 0blayout))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -58,7 +58,7 @@
  ;; If there is more than one, they won't work right.
  )
 
-(package-install-selected-packages)
+;;(package-install-selected-packages)
 
 (load "envs.el")
 (load "spell_conf.el")
@@ -70,6 +70,7 @@
 (load "python_conf.el")
 (load "c_cpp_conf.el")
 (load "org_conf.el")
+(load "ox_conf.el")
 (load "latex_conf.el")
 
 

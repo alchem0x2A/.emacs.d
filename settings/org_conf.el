@@ -1,6 +1,7 @@
 ;; Use inline-tasks for TODO entries
 ;; C-c C-x t will work
 (require 'org-inlinetask)
+(require 'ox)
 
 ;; Use org mode html output for emails
 
@@ -161,6 +162,8 @@ BEG and END default to the buffer boundaries."
       (cons '(:results . "output org drawer replace")
             (assq-delete-all :results org-babel-default-header-args)))
 
+;; Auto fold 
+(add-hook 'org-mode-hook  'org-hide-block-all)
 
 ;; Define colored outpur for TODO keywords
 
