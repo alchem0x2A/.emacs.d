@@ -181,3 +181,9 @@ BEG and END default to the buffer boundaries."
            tags ":")))))
 
 (setq org-latex-format-headline-function 'org-latex-format-headline-colored-keywords-function)
+
+;; More templates:
+(add-to-list 'org-structure-template-alist '("he" "#+HEADERS: "))
+(add-to-list 'org-structure-template-alist '("n" "#+NAME: "))
+(add-to-list 'org-structure-template-alist '("tb" "#+TNLNAME: "))
+(add-to-list 'org-structure-template-alist '("ca" "#+CAPTION: "))

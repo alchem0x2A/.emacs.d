@@ -82,3 +82,12 @@
 				  ("\\paragraph{%s}" . "\\paragraph*{%s}")
 				  ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
+
+;; Latexmk and xelatex are fancier
+(setq org-latex-pdf-process
+      (list "latexmk -f -pdf -quiet -view=none -xelatex %f"))
+(setq org-latex-with-hyperref nil)
+
+
+;; Use user defined labels instead
+(setq org-latex-prefer-user-labels t)
