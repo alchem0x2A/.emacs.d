@@ -185,5 +185,6 @@ BEG and END default to the buffer boundaries."
 ;; More templates:
 (add-to-list 'org-structure-template-alist '("he" "#+HEADERS: "))
 (add-to-list 'org-structure-template-alist '("n" "#+NAME: "))
-(add-to-list 'org-structure-template-alist '("tb" "#+TNLNAME: "))
+(add-to-list 'org-structure-template-alist '("tb" "#+TBLNAME: "))
 (add-to-list 'org-structure-template-alist '("ca" "#+CAPTION: "))
+(add-to-list 'org-structure-template-alist '("al" "#+ATTR_LATEX: "))
