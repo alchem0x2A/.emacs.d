@@ -3,6 +3,7 @@
 (require 'ox-publish)
 (require 'ox-pandoc)
 (require 'org-ref)			;In case the ref mode is not loaded.
+(require 'ox-extra)			;Requires the use of org elpa
 
 ;; Comes from https://github.com/jkitchin/jmax/blob/master/ox-manuscript.el
 ;; * Journal templates
@@ -91,3 +92,10 @@
 
 ;; Use user defined labels instead
 (setq org-latex-prefer-user-labels t)
+
+;; Use minted and pigment
+(add-to-list 'org-latex-packages-alist '("" "minted"))
+(setq org-latex-listings 'minted)
+
+;; Enable the exclusion of certain headlines
+(ox-extras-activate '(ignore-headlines))
