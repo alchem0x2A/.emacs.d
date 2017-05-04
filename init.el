@@ -49,7 +49,40 @@
     ("dbb643699e18b5691a8baff34c29d709a3ff9787f09cdae58d3c1bc085b63c25" default)))
  '(org-agenda-files
    (quote
-    ("~/polybox/Research/6-vdW-transparency/transparency_2D.org")))
+    ("~/polybox/Research/8-graphene-electrowetting/writing/paper-Tian-gr-wetting.org" "~/polybox/Research/6-vdW-transparency/transparency_2D.org")))
+ '(org-format-latex-options
+   (quote
+    (:foreground default :background default :scale 1.2 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
+		 ("begin" "$1" "$" "$$" "\\(" "\\["))))
+ '(org-preview-latex-process-alist
+   (quote
+    ((dvipng :programs
+	     ("latex" "dvipng")
+	     :description "dvi > png" :message "you need to install the programs: latex and dvipng." :image-input-type "dvi" :image-output-type "png" :image-size-adjust
+	     (1.0 . 1.0)
+	     :latex-compiler
+	     ("latex -interaction nonstopmode -output-directory %o %f")
+	     :image-converter
+	     ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f")
+	     :latex-header "\\documentclass[preview]{standalone}
+\\usepackage{amsmath, amssymb}
+\\usepackage[usename]{xcolor}")
+     (dvisvgm :programs
+	      ("latex" "dvisvgm")
+	      :description "dvi > svg" :message "you need to install the programs: latex and dvisvgm." :use-xcolor t :image-input-type "dvi" :image-output-type "svg" :image-size-adjust
+	      (1.7 . 1.5)
+	      :latex-compiler
+	      ("latex -interaction nonstopmode -output-directory %o %f")
+	      :image-converter
+	      ("dvisvgm %f -n -b min -c %S -o %O"))
+     (imagemagick :programs
+		  ("xelatex" "convert")
+		  :description "pdf > png" :message "you need to install the programs: latex and imagemagick." :use-xcolor t :image-input-type "pdf" :image-output-type "png" :image-size-adjust
+		  (1.2 . 1.2)
+		  :latex-compiler
+		  ("xelatex -interaction nonstopmode -output-directory %o %f")
+		  :image-converter
+		  ("convert -density %D -trim -antialias %f -quality 100 %O")))))
  '(package-selected-packages
    (quote
     (org-plus-contrib reveal-in-osx-finder org org-ref ox-pandoc visual-fill-column 2048-game cdlatex company-irony company-irony-c-headers flycheck-irony irony sublimity smooth-scrolling smart-mode-line-powerline-theme python-mode pyenv-mode py-autopep8 neotree moe-theme minimap matlab-mode magit latex-unicode-math-mode jedi helm-projectile helm-ls-git helm-gtags helm-flx ggtags flycheck flx-isearch exec-path-from-shell elpy auctex-latexmk 0blayout))))

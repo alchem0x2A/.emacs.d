@@ -86,7 +86,7 @@
 
 ;; Latexmk and xelatex are fancier
 (setq org-latex-pdf-process
-      (list "latexmk -f -pdf -quiet -view=none -pdflatex='xelatex --shell-escape' %f"))
+      (list "latexmk -f -pdf -quiet -view=none -pdflatex='xelatex -interaction=nonstopmode --shell-escape' %f"))
 (setq org-latex-with-hyperref nil)
 
 
@@ -99,3 +99,30 @@
 
 ;; Enable the exclusion of certain headlines
 (ox-extras-activate '(ignore-headlines))
+
+;; Own-defined inlinetask latex export
+
+(defun my/org-latex-format-inlinetask-function
+  (todo _todo-type priority title tags contents info)
+  "Default format function for a inlinetasks.
+See `org-latex-format-inlinetask-function' for details."
+  (let ((full-title
+	 (concat (when todo (format "\\textbf{\\textsf{\\textsc{%s}}} " todo))
+		 (when priority (format "\\framebox{\\#%c} " priority))
+		 title
+		 (when tags
+		   (format "\\hfill{}\\textsc{:%s:}"
+			   (mapconcat
+			    (lambda (tag) (org-latex-plain-text tag info))
+			    tags ":"))))))
+    (concat "\\begin{center}\n"
+	    "\\fbox{\n"
+	    "\\begin{minipage}[c]{.8\\linewidth}\n"
+	    full-title "\n\n"
+	    (and (org-string-nw-p contents)
+		 (concat "\\rule[.8em]{\\textwidth}{2pt}\n\n" contents))
+	    "\\end{minipage}\n"
+	    "}\n"
+	    "\\end{center}")))
+
+(setq org-latex-format-inlinetask-function 'my/org-latex-format-inlinetask-function)
