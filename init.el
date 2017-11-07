@@ -49,7 +49,7 @@
     ("dbb643699e18b5691a8baff34c29d709a3ff9787f09cdae58d3c1bc085b63c25" default)))
  '(org-agenda-files
    (quote
-    ("~/polybox/Research/8-graphene-electrowetting/writing/paper-Tian-gr-wetting.org" "~/polybox/Research/6-vdW-transparency/transparency_2D.org")))
+    ("~/polybox/Research/9-rev-2D-epitaxy/writing/mol_epi_2D.org")))
  '(org-format-latex-options
    (quote
     (:foreground default :background default :scale 1.2 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
@@ -85,7 +85,7 @@
 		  ("convert -density %D -trim -antialias %f -quality 100 %O")))))
  '(package-selected-packages
    (quote
-    (org-plus-contrib reveal-in-osx-finder org org-ref ox-pandoc visual-fill-column 2048-game cdlatex company-irony company-irony-c-headers flycheck-irony irony sublimity smooth-scrolling smart-mode-line-powerline-theme python-mode pyenv-mode py-autopep8 neotree moe-theme minimap matlab-mode magit latex-unicode-math-mode jedi helm-projectile helm-ls-git helm-gtags helm-flx ggtags flycheck flx-isearch exec-path-from-shell elpy auctex-latexmk 0blayout))))
+    (skewer-mode org-plus-contrib reveal-in-osx-finder org org-ref ox-pandoc visual-fill-column 2048-game cdlatex company-irony company-irony-c-headers flycheck-irony irony sublimity smooth-scrolling smart-mode-line-powerline-theme python-mode pyenv-mode py-autopep8 neotree moe-theme minimap matlab-mode magit latex-unicode-math-mode jedi helm-projectile helm-ls-git helm-gtags helm-flx ggtags flycheck flx-isearch exec-path-from-shell elpy auctex-latexmk 0blayout))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -96,7 +96,7 @@
 ;;(package-install-selected-packages)
 
 (load "envs.el")
-(load "spell_conf.el")
+;; (load "spell_conf.el")
 (load "helm_conf.el")
 (load "projectile_conf.el")
 (load "ui.el")
