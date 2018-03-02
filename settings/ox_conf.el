@@ -86,7 +86,7 @@
 
 ;; Latexmk and xelatex are fancier
 (setq org-latex-pdf-process
-      (list "latexmk -f -pdf -quiet -view=none -pdflatex='xelatex -interaction=nonstopmode --shell-escape' %f"))
+      (list "latexmk -f -pdf -quiet -view=none -pdflatex='xelatex -8bit -interaction=nonstopmode --shell-escape' %f"))
 (setq org-latex-with-hyperref nil)
 
 
