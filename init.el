@@ -85,7 +85,7 @@
 		  ("convert -density %D -trim -antialias %f -quality 100 %O")))))
  '(package-selected-packages
    (quote
-    (python-docstring sphinx-doc org-plus-contrib reveal-in-osx-finder org org-ref ox-pandoc visual-fill-column 2048-game cdlatex company-irony company-irony-c-headers flycheck-irony irony sublimity smooth-scrolling smart-mode-line-powerline-theme python-mode pyenv-mode py-autopep8 neotree moe-theme minimap matlab-mode magit latex-unicode-math-mode jedi helm-projectile helm-ls-git helm-gtags helm-flx ggtags flycheck flx-isearch exec-path-from-shell elpy auctex-latexmk 0blayout))))
+    (csv-mode cuda-mode python-docstring sphinx-doc org-plus-contrib reveal-in-osx-finder org org-ref ox-pandoc visual-fill-column 2048-game cdlatex company-irony company-irony-c-headers flycheck-irony irony sublimity smooth-scrolling smart-mode-line-powerline-theme python-mode pyenv-mode py-autopep8 neotree moe-theme minimap matlab-mode magit latex-unicode-math-mode jedi helm-projectile helm-ls-git helm-gtags helm-flx ggtags flycheck flx-isearch exec-path-from-shell elpy auctex-latexmk 0blayout))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

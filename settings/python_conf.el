@@ -18,7 +18,7 @@
 (when (file-exists-p "~/.virtualenvs/ve-matplotlib2")
   (pyvenv-workon "ve-matplotlib2")
   )
-(create-ipython-ansi-term)
+;(create-ipython-ansi-term)
 
 
 ;;Use elpy as the main support for python mode
@@ -26,9 +26,10 @@
 
 ;;Use IPython for the compiling
 ;;Of course python 3 should be used
-(elpy-use-ipython)
+;(elpy-use-ipython)
 
 ;;If the ansi-term is not invoked for ipython process, use simple-prompt as instead
+(setq python-shell-interpreter "ipython")
 (setq python-shell-interpreter-interactive-arg "--simple-prompt -i")
 
 ;;Use flycheck instead of flymake for pep8 check
