@@ -3,6 +3,8 @@
 
 (require 'package)
 
+;;Test if adding further changes possible
+
 ;;Only need to use for aquamacs
 ;; (setq user-emacs-directory "~/.emacs.d")
 ;; (setq package-user-dir "~/emacs.d/elpa")
