@@ -25,3 +25,4 @@ session*
 
 /.org-id-locations
 /tramp
+/custom_setting.el
