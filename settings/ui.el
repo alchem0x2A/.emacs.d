@@ -1,4 +1,3 @@
-
 ;;Setting the UI of emacs
 
 ;;Disable srgb colorspace when emacs > 24.4.5
@@ -20,13 +19,15 @@
 (powerline-moe-theme)
 
 ;;Disable visual and audio beep
-(setq visible-bell nil)
+(setq visible-bell t)
 (setq ring-bell-function 'ignore)
 
-;;Enable linum mode globally
-(global-linum-mode t)
-(eval-after-load "linum"
-  '(set-face-attribute 'linum nil :height 120))
+;;Enable display-line-numbers-mode for emacs26
+(if (version<= "26.0.6" emacs-version)
+    (global-display-line-numbers-mode t)
+  (global-linum-mode t)
+  )
+
 ;; (setq linum-format "%d ")
 
 ;; Change font size
@@ -51,20 +52,20 @@
 (show-paren-mode t)
 
 ;; font
-(when (eq system-type 'darwin)
+;; (when (eq system-type 'darwin)
 
-      ;; default Latin font (e.g. Consolas)
-      (set-face-attribute 'default nil :family "MonacoB2")
+;;       ;; default Latin font (e.g. Consolas)
+;;       (set-face-attribute 'default nil :family "MonacoB2")
 
-      ;; default font size (point * 10)
-      ;;
-      ;; WARNING!  Depending on the default font,
-      ;; if the size is not supported very well, the frame will be clipped
-      ;; so that the beginning of the buffer may not be visible correctly. 
-      (set-face-attribute 'default nil :height 120)
+;;       ;; default font size (point * 10)
+;;       ;;
+;;       ;; WARNING!  Depending on the default font,
+;;       ;; if the size is not supported very well, the frame will be clipped
+;;       ;; so that the beginning of the buffer may not be visible correctly. 
+;;       (set-face-attribute 'default nil :height 120)
 
-      ;; you may want to add different for other charset in this way.
-      )
+;;       ;; you may want to add different for other charset in this way.
+;;       )
 
-(add-to-list 'default-frame-alist '(height . 60))
+(add-to-list 'default-frame-alist '(height . 120))
 (add-to-list 'default-frame-alist '(width . 150))
