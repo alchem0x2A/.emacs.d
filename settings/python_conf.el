@@ -1,35 +1,31 @@
-;;Workaround for the ipython-5 issue
-(defun create-ipython-ansi-term ()
-  "Create an ansi-term buffer named *Python* to work around characters in IPython5"
-  (interactive)
-  (setq cur (buffer-name))
-  (setq b (get-buffer "*Python*"))
-  (if (not (eq nil b))
-      (kill-buffer b)
-    )
-  (setq b (ansi-term "ipython"))
-  (get-buffer b)
-  (rename-buffer "*Python*")
-  (switch-to-buffer (get-buffer cur))
-  )
-
-;;An ipython daemon is idle on start-up
-;;Use python virtualenv if possible
-(when (file-exists-p "~/.virtualenvs/ve-matplotlib2")
-  (pyvenv-workon "ve-matplotlib2")
-  )
-(create-ipython-ansi-term)
+;; Global settings for Elpy mode in emacs
 
 
 ;;Use elpy as the main support for python mode
 (elpy-enable)
 
+;; Configure the workon home for elpy
+(setenv "WORKON_HOME"
+	"~/.venv/")
+
+;; Default virtualenv to work on
+(if (member "default-py37"
+	    (pyvenv-virtualenv-list))
+    (pyvenv-workon "default-py37")
+  nil)
 ;;Use IPython for the compiling
 ;;Of course python 3 should be used
-(elpy-use-ipython)
+;; (elpy-use-ipython)
 
-;;If the ansi-term is not invoked for ipython process, use simple-prompt as instead
-(setq python-shell-interpreter-interactive-arg "--simple-prompt -i")
+;; Switch to use jupyter console (developed version based on ipython)
+;; Following the suggestions here: https://elpy.readthedocs.io/en/latest/ide.html
+(setq python-shell-interpreter "jupyter")
+(setq python-shell-interpreter-args "console --simple-prompt"
+      python-shell-prompt-detect-failure-warning nil)
+(add-to-list 'python-shell-completion-native-disabled-interpreters
+             "jupyter")
+;; Temporary fix for strange echo chars in jupyter console
+(setq elpy-shell-echo-output nil)
 
 ;;Use flycheck instead of flymake for pep8 check
 (when (require 'flycheck nil t)
@@ -37,6 +33,3 @@
   ;; (add-hook 'elpy-mode-hook 'flycheck-mode)
   )
 
-;;Enable auto pep8 on save
-(require 'py-autopep8)
-;; (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
