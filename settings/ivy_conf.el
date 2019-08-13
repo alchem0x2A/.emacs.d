@@ -1,5 +1,8 @@
 ;; Setting up Ivy-mode, Counsel and Swiper
 ;; Globally enable ivy mode
+(require 'ivy)
+(require 'counsel)
+(require 'swiper)
 (ivy-mode t)
 
 ;; Use history in ivy completion
@@ -23,16 +26,16 @@
 ;; Define actions in the minibuffer keymap
 ;; Mimicking the behavior of "C-c i" in helm-mode, but with mode flexibility
 (define-key ivy-minibuffer-map (kbd "C-c i") 'ivy-dispatching-done)
-(ivy-add-actions t
-                   '(("I" (lambda (x) (with-ivy-window (insert x))) "insert full name")))
+;; (ivy-add-actions t
+;;                  '(("I" (lambda (x) (with-ivy-window (insert x))) "insert full name")))
 (ivy-add-actions 'counsel-find-file
-		 '(("F" (lambda (x) (with-ivy-window (insert (file-relative-name x))))
+		 '(("p" (lambda (x) (with-ivy-window (insert (file-relative-name x))))
 		    "insert relative file name")
-		   ("B" (lambda (x)
+		   ("n" (lambda (x)
 			  (with-ivy-window
 			    (insert (file-name-nondirectory (replace-regexp-in-string "/\\'" "" x)))))
 		    "insert file name without any directory information")))
-
+(message "The alist is\n\n%s" (eval 'ivy--actions-list))
 
 ;; Ivy fuzzy search function
 ;; Following instructions from https://oremacs.com/2016/01/06/ivy-flx/
