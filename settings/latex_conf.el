@@ -13,7 +13,11 @@
 (setq reftex-plug-into-AUCTeX t)
 
 ;; Enable choosing XeLaTeX and LuaTeX as TeX engining as well as Latexmk
+;; By default, this option is only achievable when opening the document buffer only
+;; If you encouter problems, reload the buffer and call "C-c C-c" again
 (setq TeX-check-engine t)
 (auctex-latexmk-setup)
 ;; Useful when invoking sources made by org mode
+;; By default the
+;; -nonstop-mode and -shell-escape are passed onto
 (setq-default TeX-command-extra-options "-shell-escape")
