@@ -3,15 +3,6 @@
 ;9; Mac-based keybindings
 
 (when (eq system-type 'darwin)
-  ;;Overwrite original "s-w" behavior from close the frame to close the buffer and window (more intuitive to me)
-  (global-set-key (kbd "s-w") 'kill-buffer-and-window)
-;;Overwrite the default s-S which open the system panel
-  (global-set-key (kbd "s-S") 'write-file)
-  ;;Oevrwrite the default s-o with emacs-like open
-  (global-set-key (kbd "s-o") 'helm-find-files)
-;; Use global compile command
-  (global-set-key (kbd "s-b") 'compile)
-
   ;; s-z is normal undo-tree-undo
   ;; s-Z is undo-tree-redo
   ;; I don't link to bind the C-x U with visialization
@@ -35,10 +26,6 @@
   (global-set-key (kbd "s-<right>") 'move-end-of-line)
   (global-set-key (kbd "s-<up>") 'beginning-of-buffer)
   (global-set-key (kbd "s-<down>") 'end-of-buffer)
-
-  ;;Meta+arrow for navigation
-  (global-set-key (kbd "M-<up>") 'scroll-down-command)
-  (global-set-key (kbd "M-<down>") 'scroll-up-command)
 
   ;;Copy and paste facilities
   (global-set-key [remap ns-copy-including-secondary] 'kill-ring-save)

@@ -9,8 +9,7 @@
 (require 'undo-tree)
 (global-undo-tree-mode t)
 
-
-
+(move-text-default-bindings)
 
 ;; Delete functions
 (defun backward-delete-line (arg)
