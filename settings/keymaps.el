@@ -1,6 +1,5 @@
-
-
-;9; Mac-based keybindings
+;; This file defines the GLOBAL key-bindings for emacs under
+;; Currently the macOS keys are implemented
 
 (when (eq system-type 'darwin)
   ;; s-z is normal undo-tree-undo
@@ -8,12 +7,12 @@
   ;; I don't link to bind the C-x U with visialization
 ;; of undo tree. Disable it.
   (define-key undo-tree-map (kbd "C-x u") nil)
-  (define-key undo-tree-map (kbd "s-Z")
-    'undo-tree-redo)
+  (define-key undo-tree-map (kbd "s-Z") 'undo-tree-redo)
   ;; Undo
 
   ;; Some common macOS kbds
-  (global-set-key (kbd "s-w") 'kill-buffer-and-window)
+  ;; Delete window like C-x 0 but not killing buffer.
+  (global-set-key (kbd "s-w") 'delete-window)
   ;;Overwrite the default s-S which open the system panel
   (global-set-key (kbd "s-S") 'write-file)
   ;;Oevrwrite the default s-o with emacs-like open
@@ -26,6 +25,7 @@
   (global-set-key (kbd "s-<right>") 'move-end-of-line)
   (global-set-key (kbd "s-<up>") 'beginning-of-buffer)
   (global-set-key (kbd "s-<down>") 'end-of-buffer)
+
 
   ;;Copy and paste facilities
   (global-set-key [remap ns-copy-including-secondary] 'kill-ring-save)

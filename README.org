@@ -1,0 +1,69 @@
+#+TITLE: =.emacs.d= my Emacs configuration settings
+My .emacs.d configurations
+* Overview
+** Editor UI design
+- Use =moe-theme= for the color scheme
+** Mac-specified features to mimic a "modern" editor
+See the section below
+
+
+* Global Mac-specific features
+Maximize the use of ⌘ (super) key in Emacs according to personal behavior.
+** Window navigation 
+- =s-w=: delete current window (no kill buffer). Equivalent to =C-x 0=
+- =s-<left>=: Move to the beginning of line
+- =s-<right>=: Move to the end of line
+- =s-<up>=: Move to beginning of buffer. Equivalent to =<home>= (Fn + Left on Mac keyboard)
+- =s-<down>=: Move to end of buffer. Equivalent to =<end>= (Fn + Right on Mac keyboard)
+- =M-s-<up>=: Move to upper window
+- =M-s-<down>=: Move to lower window
+- =M-s-<left>=: Move to left window
+- =M-s-<right>=: Move to right window
+
+** Undo / redo
+
+The original undo/ redo functionalities of Emacs are fancy but also
+complicated when implementing redo. We use =undo-tree= mode to manage
+all the undo / redo history in Emacs. 
+
+The following key bindings are used by convention:
+- =s-z=: undo using =undo-tree-undo=
+- =s-Z=: redo using =undo-tree-red=
+
+Note in the =undo-tree= mode, the key =C-x u= is binded to visualize
+the undo tree. I personally don't prefer this approach and set =C-x u=
+to the usual =undo= binding defined by Emacs.
+
+** Delete behavior
+The default behavior of "kill" in emacs is a fancy feature but not so
+appealing to users like me (coming from background of Sublime, XCode
+etc.)  The annoying part of the default behavior comes for the
+following scenario:
+1. Copy some text from another buffer to the kill-ring
+2. Go to the buffer that you want to edit, delete the regions with
+   keys like =C-<backspace>=, =s-<backspace>= etc.
+3. Now the last kill-ring becomes the text you deleted (killed) during
+   step 2, and you have to go explicitly to the kill-ring to find out
+   what needs to be pasted
+
+This default behavior is avoided by explicitly invoking the delete
+functions (see =settings/editor.el= for details). In brief, the following key-bindings will not save the deleted region to kill-ring:
+- =s-<backspace>=: delete all contents of the line before the
+  position. Will not greedily delete when invoking multiple times.
+*************** TODO Maybe change to consecutive delete
+*************** END
+- =s-<kp-delete>=: delete all contents of the line after the
+  position. No greedy deletion.
+- =C-<backspace>=, =M-<backspace>=: backward delete a word or
+  subword. When =syntax-subword-mode= is present, use the
+  =syntax-subword-forward= method to locate subword; otherwise the
+  normal =subword-forward=.
+- =C-<kp-delete>=, =M-<kp-delete>=: backward delete a word or subword.
+** Select and comment
+Use convention from other text editors. 
+- =s-l=: select current line
+- =s-/=: comment current line / region, enabled with Emacs version
+\gt{}25.0
+
+The usual key-binding =M-;= (=comment-dwim=) is used when you want to
+append some comment at the end of a line. 
