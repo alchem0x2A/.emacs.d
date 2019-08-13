@@ -32,3 +32,14 @@
 			  (with-ivy-window
 			    (insert (file-name-nondirectory (replace-regexp-in-string "/\\'" "" x)))))
 		    "insert file name without any directory information")))
+
+
+;; Ivy fuzzy search function
+;; Following instructions from https://oremacs.com/2016/01/06/ivy-flx/
+(setq ivy-re-builders-alist
+      '((ivy-switch-buffer . ivy--regex-plus)
+	(swiper . ivy--regex-plus)
+        (t . ivy--regex-fuzzy)))
+;; Use flx only to achieve input fuzzy sorting
+;; Much better than default isearch
+(setq ivy-initial-inputs-alist nil)
