@@ -23,7 +23,7 @@
 (setq ring-bell-function 'ignore)
 
 ;;Enable display-line-numbers-mode for emacs26
-(if (version<= "26.0.6" emacs-version)
+(if (version<= "26.0.50" emacs-version)
     (global-display-line-numbers-mode t)
   (global-linum-mode t)
   )
@@ -51,21 +51,7 @@
 ;;Always enable paranthes match
 (show-paren-mode t)
 
-;; font
-;; (when (eq system-type 'darwin)
 
-;;       ;; default Latin font (e.g. Consolas)
-;;       (set-face-attribute 'default nil :family "MonacoB2")
-
-;;       ;; default font size (point * 10)
-;;       ;;
-;;       ;; WARNING!  Depending on the default font,
-;;       ;; if the size is not supported very well, the frame will be clipped
-;;       ;; so that the beginning of the buffer may not be visible correctly. 
-;;       (set-face-attribute 'default nil :height 120)
-
-;;       ;; you may want to add different for other charset in this way.
-;;       )
-
-(add-to-list 'default-frame-alist '(height . 120))
-(add-to-list 'default-frame-alist '(width . 150))
+;; Might not show all contents
+(add-to-list 'default-frame-alist '(height . 60))
+(add-to-list 'default-frame-alist '(width . 128))
