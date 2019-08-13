@@ -1,4 +1,5 @@
-;; This file defines the GLOBAL key-bindings for emacs under
+;; This file defines the GLOBAL key-bindings for Emacs
+;; Other mode-specified key-bindings are usually set in individual files
 ;; Currently the macOS keys are implemented
 
 (when (eq system-type 'darwin)

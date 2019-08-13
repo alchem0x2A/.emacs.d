@@ -5,6 +5,9 @@
 (setq line-move-visual nil)
 (setq visual-fill-column-width 80)
 
+;; Always use electric pair
+(electric-pair-mode t)
+
 ;; Allow undo-tree to use
 (require 'undo-tree)
 (global-undo-tree-mode t)
