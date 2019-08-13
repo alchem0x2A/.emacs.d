@@ -1,7 +1,7 @@
-(require 'projectile)
-(require 'helm-projectile)
+;; (require 'projectile)
+;; (require 'helm-projectile)
 
-(projectile-global-mode)
+;; (projectile-global-mode)
 
 
-(helm-projectile-on)
+;; (helm-projectile-on)
