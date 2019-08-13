@@ -21,3 +21,9 @@
 ;; By default the
 ;; -nonstop-mode and -shell-escape are passed onto
 (setq-default TeX-command-extra-options "-shell-escape")
+(setq TeX-view-program-selection
+      '((output-pdf "Skim")
+	(output-dvi "open")
+	(output-html "open")))
+(setq TeX-view-program-list
+     '(("Skim" "displayline -b -g %n %o %b")))
