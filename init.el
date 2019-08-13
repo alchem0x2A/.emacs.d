@@ -51,7 +51,7 @@
 
 (load "envs.el")
 (load "editor.el")
-(load "ivy.el")
+(load "ivy_conf.el")
 (load "keymaps.el")
 (load "spell_conf.el")
 ;; (load "projectile_conf.el")
