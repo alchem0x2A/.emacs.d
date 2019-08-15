@@ -7,10 +7,13 @@
 
 (add-hook 'LaTeX-mode-hook 'visual-line-mode)
 (add-hook 'LaTeX-mode-hook 'flyspell-mode)
+(add-hook 'LaTeX-mode-hook 'flyspell-ignore-tex)
 (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
 (add-hook 'LaTeX-mode-hook 'cdlatex-mode)
+(add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode) ;Allow correlation mode
 (setq reftex-plug-into-AUCTeX t)
+(setq TeX-source-correlate-start-server t) ;Always start server at startup
 
 ;; Enable choosing XeLaTeX and LuaTeX as TeX engining as well as Latexmk
 ;; By default, this option is only achievable when opening the document buffer only
