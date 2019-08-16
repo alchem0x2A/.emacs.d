@@ -9,6 +9,33 @@ See the section below
 
 * Global Mac-specific features
 Maximize the use of ⌘ (super) key in Emacs according to personal behavior.
+
+** TODO Server and client configurations
+On top of out-of-box GNU Emacs.app in macOS, we use a server-client
+model for running GUI / terminal text editing. The following behavior
+is desired according to personal preferences:
+- The emacs server is alive within an active session of =Emacs.app=, i.e. the Emacs icon is shown in the dashboard.
+- Terminal editing of a file is done by a wrapped version of =emacsclient=. If the emacs server is not alive, activate the GUI =Emacs.app=
+- No =launchctl= process should be involved as the user could not have elevated privilege.
+
+To do this, we require both settings on server and client sides:
+
+*** Server side
+
+- When opening =Emacs.app=, the =init.el= script will automatically enable emacs server using =(server-start)=.
+- The window close button only hides the application but not quitting it, making further client sessions doable. (Solution from: https://lists.gnu.org/archive/html/help-gnu-emacs/2016-01/msg00236.html)
+- REAL quitting is done by =(save-buffers-kill-emacs)= or ⌘+Q
+
+
+
+
+
+*** Client side
+
+The following snippet should be added to the =.bash_profile= or any
+related shell init scripts:
+
+
 ** Window navigation 
 - =s-w=: delete current window (no kill buffer). Equivalent to =C-x 0=
 - =s-<left>=: Move to the beginning of line
