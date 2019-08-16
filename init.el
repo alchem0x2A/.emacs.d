@@ -64,6 +64,11 @@
 (load "ox_conf.el")
 (load "latex_conf.el")
 
+;; Start the emacs server
+;; Only on the macOS version
+(server-force-delete)
+(server-start)
+
 
 
 
