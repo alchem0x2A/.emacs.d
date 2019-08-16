@@ -54,6 +54,7 @@
 (load "ivy_conf.el")
 (load "keymaps.el")
 (load "spell_conf.el")
+(load "yas_conf.el")
 ;; (load "projectile_conf.el")
 (load "ui.el")
 (load "magit_conf.el")

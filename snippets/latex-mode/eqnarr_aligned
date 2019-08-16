@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: Aligned Eqn array
+# key: eqal
+# --
+\begin{eqnarray}
+\label{eq:$1}
+\begin{aligned}
+$2 & $0
+\end{aligned}
+\end{eqnarray}
