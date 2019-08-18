@@ -10,7 +10,7 @@ See the section below
 * Global Mac-specific features
 Maximize the use of ⌘ (super) key in Emacs according to personal behavior.
 
-** TODO Server and client configurations
+** Server and client configurations
 On top of out-of-box GNU Emacs.app in macOS, we use a server-client
 model for running GUI / terminal text editing. The following behavior
 is desired according to personal preferences:
@@ -27,13 +27,52 @@ To do this, we require both settings on server and client sides:
 - REAL quitting is done by =(save-buffers-kill-emacs)= or ⌘+Q
 
 
-
-
-
 *** Client side
 
-The following snippet should be added to the =.bash_profile= or any
+On the client side, the desired behavior is run the text editor by
+simply as:
+
+#+BEGIN_SRC sh
+  ec FILE_NAME1 FILE_NAME2 ...
+#+END_SRC
+where =ec= is a function wrapper of =emacsclient= that automatically determines if the server on =Emacs.app= has started.
+
+The [[https://gist.github.com/lovaulonze/f5197a58ff791a428ab0d5595f26b035][following snippet]] should be loaded by the =.bash_profile= or any
 related shell init scripts:
+
+#+BEGIN_SRC sh
+  #!/bin/sh
+
+  function ec_wrapper {
+      GREEN='\033[0;32m'
+      NC='\033[0m'
+      buffers=$@
+      cmd="emacsclient -nqc"
+      # Excecute command
+      $cmd $buffers &> /dev/null
+      return_code=$?
+      if (( $return_code != 0))
+      then
+          pid=$(pgrep -ai "emacs")
+          # If emacs current running?
+          if (( ${#pid} == 0 ))	# No pid returned
+          then   # No emacs running, then open the GUI
+              emacs --chdir $(pwd) $@ & &> /dev/null
+              suc=$?
+              return $suc
+          else
+              echo "There is a running Emacs instance but I can't find find the server."
+              echo -e "Run ${GREEN}M-x server-start${NC} in Emacs to enable it."
+          fi
+      else
+          return 0			# Success
+      fi
+  }
+
+  alias ec=ec_wrapper
+
+
+#+END_SRC
 
 
 ** Window navigation 
