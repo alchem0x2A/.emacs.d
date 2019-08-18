@@ -41,8 +41,6 @@ The [[https://gist.github.com/lovaulonze/f5197a58ff791a428ab0d5595f26b035][follo
 related shell init scripts:
 
 #+BEGIN_SRC sh
-  #!/bin/sh
-
   function ec_wrapper {
       GREEN='\033[0;32m'
       NC='\033[0m'
