@@ -15,6 +15,11 @@
 (setq reftex-plug-into-AUCTeX t)
 (setq TeX-source-correlate-start-server t) ;Always start server at startup
 
+;; Open pgf and tikz files in TeX mode
+(add-to-list 'auto-mode-alist '("\\.pgf\\'" . LaTeX-mode))
+(add-to-list 'auto-mode-alist '("\\.tikz\\'" . LaTeX-mode))
+(add-to-list 'auto-mode-alist '("\\.pdf_tex\\'" . LaTeX-mode)) ;Inkscape generated file
+
 ;; Enable choosing XeLaTeX and LuaTeX as TeX engining as well as Latexmk
 ;; By default, this option is only achievable when opening the document buffer only
 ;; If you encouter problems, reload the buffer and call "C-c C-c" again
