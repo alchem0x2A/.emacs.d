@@ -13,7 +13,8 @@
 
 ;;Moe-mode for the pwerline mode
 (moe-light)
-(moe-theme-set-color 'purple)
+(moe-theme-apply-color 'purple)
+
 
 ;;Don't know why this does not work for eval-buffer
 (powerline-moe-theme)

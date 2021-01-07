@@ -1,6 +1,7 @@
 ;; Use inline-tasks for TODO entries
 ;; C-c C-x t will work
 (require 'org-inlinetask)
+(require 'org-tempo)
 (require 'ox)
 
 ;; Use org mode html output for emails
@@ -27,22 +28,22 @@
 ;; By-default org will try to open another frame and edit
 ;; this is really a bad behavior.
 (setq org-src-window-setup 'other-window)
-(defun org-insert-src-block (src-code-type)
-  "Insert a `SRC-CODE-TYPE' type source code block in org-mode."
-  (interactive
-   (let ((src-code-types
-          '("emacs-lisp" "python"  "latex" "C" "sh" "java" "js" "clojure" "C++" "css"
-            "calc" "asymptote" "dot" "gnuplot" "ledger" "lilypond" "mscgen"
-            "octave" "oz" "plantuml" "R" "sass" "screen" "sql" "awk" "ditaa"
-            "haskell" "lisp" "matlab" "ocaml" "org" "perl" "ruby"
-            "scheme" "sqlite")))
-     (list (completing-read "Source code type: " src-code-types))))
-  (progn
-    (newline-and-indent)
-    (insert (format "#+BEGIN_SRC %s\n" src-code-type))
-    (newline-and-indent)
-    (insert "#+END_SRC\n")
-    (previous-line 2)))
+;; (defun org-insert-src-block (src-code-type)
+;;   "Insert a `SRC-CODE-TYPE' type source code block in org-mode."
+;;   (interactive
+;;    (let ((src-code-types
+;;           '("emacs-lisp" "python"  "latex" "C" "sh" "java" "js" "clojure" "C++" "css"
+;;             "calc" "asymptote" "dot" "gnuplot" "ledger" "lilypond" "mscgen"
+;;             "octave" "oz" "plantuml" "R" "sass" "screen" "sql" "awk" "ditaa"
+;;             "haskell" "lisp" "matlab" "ocaml" "org" "perl" "ruby"
+;;             "scheme" "sqlite")))
+;;      (list (completing-read "Source code type: " src-code-types))))
+;;   (progn
+;;     (newline-and-indent)
+;;     (insert (format "#+BEGIN_SRC %s\n" src-code-type))
+;;     (newline-and-indent)
+;;     (insert "#+END_SRC\n")
+;;     (previous-line 2)))
 
 ;; (with-eval-after-load
     ;; (define-key org-mode-map (kbd "C-c C-v m") 'org-insert-src-block)
@@ -106,62 +107,62 @@
 
 ;; Enable inline pdf display by redifining the org-display-inline-images method
 ;; [[http://stackoverflow.com/questions/15407485/inline-pdf-images-in-org-mode]]
-(setq org-imagemagick-display-command "convert -density 600 \"%s\" -thumbnail \"%sx%s>\" \"%s\"")
-(defun org-display-inline-images (&optional include-linked refresh beg end)
-  "Display inline images.
-Normally only links without a description part are inlined, because this
-is how it will work for export.  When INCLUDE-LINKED is set, also links
-with a description part will be inlined.  This
-can be nice for a quick
-look at those images, but it does not reflect what exported files will look
-like.
-When REFRESH is set, refresh existing images between BEG and END.
-This will create new image displays only if necessary.
-BEG and END default to the buffer boundaries."
-  (interactive "P")
-  (unless refresh
-    (org-remove-inline-images)
-    (if (fboundp 'clear-image-cache) (clear-image-cache)))
-  (save-excursion
-    (save-restriction
-      (widen)
-      (setq beg (or beg (point-min)) end (or end (point-max)))
-      (goto-char beg)
-      (let ((re (concat "\\[\\[\\(\\(file:\\)\\|\\([./~]\\)\\)\\([^]\n]+?"
-                        (substring (org-image-file-name-regexp) 0 -2)
-                        "\\)\\]" (if include-linked "" "\\]")))
-            old file ov img)
-        (while (re-search-forward re end t)
-          (setq old (get-char-property-and-overlay (match-beginning 1)
-                                                   'org-image-overlay)
-        file (expand-file-name
-                      (concat (or (match-string 3) "") (match-string 4))))
-          (when (file-exists-p file)
-            (let ((file-thumb (format "%s%s_thumb.png" (file-name-directory file) (file-name-base file))))
-              (if (file-exists-p file-thumb)
-                  (let ((thumb-time (nth 5 (file-attributes file-thumb 'string)))
-                        (file-time (nth 5 (file-attributes file 'string))))
-                    (if (time-less-p thumb-time file-time)
-            (shell-command (format org-imagemagick-display-command
-                           file org-image-actual-width org-image-actual-width file-thumb) nil nil)))
-                (shell-command (format org-imagemagick-display-command
-                                         file org-image-actual-width org-image-actual-width file-thumb) nil nil))
-              (if (and (car-safe old) refresh)
-                  (image-refresh (overlay-get (cdr old) 'display))
-                (setq img (save-match-data (create-image file-thumb)))
-                (when img
-                  (setq ov (make-overlay (match-beginning 0) (match-end 0)))
-                  (overlay-put ov 'display img)
-                  (overlay-put ov 'face 'default)
-                  (overlay-put ov 'org-image-overlay t)
-                  (overlay-put ov 'modification-hooks
-                               (list 'org-display-inline-remove-overlay))
-                  (push ov org-inline-image-overlays))))))))))
+;; (setq org-imagemagick-display-command "convert -density 600 \"%s\" -thumbnail \"%sx%s>\" \"%s\"")
+;; (defun org-display-inline-images (&optional include-linked refresh beg end)
+;;   "Display inline images.
+;; Normally only links without a description part are inlined, because this
+;; is how it will work for export.  When INCLUDE-LINKED is set, also links
+;; with a description part will be inlined.  This
+;; can be nice for a quick
+;; look at those images, but it does not reflect what exported files will look
+;; like.
+;; When REFRESH is set, refresh existing images between BEG and END.
+;; This will create new image displays only if necessary.
+;; BEG and END default to the buffer boundaries."
+;;   (interactive "P")
+;;   (unless refresh
+;;     (org-remove-inline-images)
+;;     (if (fboundp 'clear-image-cache) (clear-image-cache)))
+;;   (save-excursion
+;;     (save-restriction
+;;       (widen)
+;;       (setq beg (or beg (point-min)) end (or end (point-max)))
+;;       (goto-char beg)
+;;       (let ((re (concat "\\[\\[\\(\\(file:\\)\\|\\([./~]\\)\\)\\([^]\n]+?"
+;;                         (substring (org-image-file-name-regexp) 0 -2)
+;;                         "\\)\\]" (if include-linked "" "\\]")))
+;;             old file ov img)
+;;         (while (re-search-forward re end t)
+;;           (setq old (get-char-property-and-overlay (match-beginning 1)
+;;                                                    'org-image-overlay)
+;;         file (expand-file-name
+;;                       (concat (or (match-string 3) "") (match-string 4))))
+;;           (when (file-exists-p file)
+;;             (let ((file-thumb (format "%s%s_thumb.png" (file-name-directory file) (file-name-base file))))
+;;               (if (file-exists-p file-thumb)
+;;                   (let ((thumb-time (nth 5 (file-attributes file-thumb 'string)))
+;;                         (file-time (nth 5 (file-attributes file 'string))))
+;;                     (if (time-less-p thumb-time file-time)
+;;             (shell-command (format org-imagemagick-display-command
+;;                            file org-image-actual-width org-image-actual-width file-thumb) nil nil)))
+;;                 (shell-command (format org-imagemagick-display-command
+;;                                          file org-image-actual-width org-image-actual-width file-thumb) nil nil))
+;;               (if (and (car-safe old) refresh)
+;;                   (image-refresh (overlay-get (cdr old) 'display))
+;;                 (setq img (save-match-data (create-image file-thumb)))
+;;                 (when img
+;;                   (setq ov (make-overlay (match-beginning 0) (match-end 0)))
+;;                   (overlay-put ov 'display img)
+;;                   (overlay-put ov 'face 'default)
+;;                   (overlay-put ov 'org-image-overlay t)
+;;                   (overlay-put ov 'modification-hooks
+;;                                (list 'org-display-inline-remove-overlay))
+;;                   (push ov org-inline-image-overlays))))))))))
 
-;; Change default python header in org source block
-(setq org-babel-default-header-args:python
-      (cons '(:results . "output org drawer replace")
-            (assq-delete-all :results org-babel-default-header-args)))
+;; ;; Change default python header in org source block
+;; (setq org-babel-default-header-args:python
+;;       (cons '(:results . "output org drawer replace")
+;;             (assq-delete-all :results org-babel-default-header-args)))
 
 ;; Auto fold 
 (add-hook 'org-mode-hook  'org-hide-block-all)
@@ -184,8 +185,8 @@ BEG and END default to the buffer boundaries."
 (setq org-latex-format-headline-function 'org-latex-format-headline-colored-keywords-function)
 
 ;; More templates:
-(add-to-list 'org-structure-template-alist '("he" "#+HEADERS: "))
-(add-to-list 'org-structure-template-alist '("n" "#+NAME: "))
-(add-to-list 'org-structure-template-alist '("tb" "#+TBLNAME: "))
-(add-to-list 'org-structure-template-alist '("ca" "#+CAPTION: "))
-(add-to-list 'org-structure-template-alist '("al" "#+ATTR_LATEX: "))
+;; (add-to-list 'org-structure-template-alist '("he"  "#+BEGIN_SRC ?\n#+END_SRC" "#+HEADERS: "))
+;; (add-to-list 'org-structure-template-alist '("n" "#+NAME: "))
+;; (add-to-list 'org-structure-template-alist '("tb" "#+TBLNAME: "))
+;; (add-to-list 'org-structure-template-alist '("ca" "#+CAPTION: "))
+;; (add-to-list 'org-structure-template-alist '("al" "#+ATTR_LATEX: "))
