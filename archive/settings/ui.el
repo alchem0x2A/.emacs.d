@@ -31,9 +31,13 @@
 
 ;; (setq linum-format "%d ")
 
-;; Change font size
-(global-set-key (kbd "s-=") 'text-scale-increase)
-(global-set-key (kbd "s--") 'text-scale-decrease)
+;; Change font size globally, including mode line/minibuffer faces.
+;; `global-text-scale-adjust' dispatches on the final key event:
+;; +/= increase, - decrease, 0 reset.
+(global-set-key (kbd "s-=") #'global-text-scale-adjust)
+(global-set-key (kbd "s-+") #'global-text-scale-adjust)
+(global-set-key (kbd "s--") #'global-text-scale-adjust)
+(global-set-key (kbd "s-0") #'global-text-scale-adjust)
 
 ;;Set C-v and M-v to scroll half page
 
