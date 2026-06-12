@@ -13,6 +13,22 @@ same_path() {
   [ -d "$1" ] && [ -d "$2" ] && [ "$(cd "$1" && pwd -P)" = "$(cd "$2" && pwd -P)" ]
 }
 
+backup_path() {
+  local path="$1"
+  if [ -e "$path" ] || [ -L "$path" ]; then
+    local backup="$path.backup.$(date +%Y%m%d-%H%M%S)"
+    log "backing up existing $path to $backup"
+    mv "$path" "$backup"
+  fi
+}
+
+backup_shadowing_init_files() {
+  # These files have higher startup precedence than $DEST/init.el and would
+  # otherwise make the installed config appear to do nothing.
+  backup_path "$HOME/.emacs"
+  backup_path "$HOME/.emacs.el"
+}
+
 # Locate source tree. If this script is piped through curl, clone the repo.
 if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
   SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -24,6 +40,7 @@ else
   git clone --depth 1 "$REPO_URL" "$SRC"
 fi
 
+# Register the cleanup function upon exit.
 cleanup() {
   if [ -n "${TMPDIR:-}" ] && [ -d "$TMPDIR" ]; then
     rm -rf "$TMPDIR"
@@ -32,10 +49,13 @@ cleanup() {
 trap cleanup EXIT
 
 if same_path "$SRC" "$DEST"; then
+  backup_shadowing_init_files
   log "source and destination are already $DEST"
   printf '%s\n' "$REPO_URL" > "$MARKER"
   exit 0
 fi
+
+backup_shadowing_init_files
 
 # If the marker does not exist, create a backup. Otherwise the repo is already tracked
 # and any files can be overwritten.
@@ -54,14 +74,33 @@ fi
 
 log "installing files to $DEST"
 if command -v rsync >/dev/null 2>&1; then
-  rsync -a --delete \
+  rsync -a --delete -P \
     --exclude '.git/' \
     --exclude 'elpa/' \
+    --exclude 'eln-cache/' \
+    --exclude 'custom.el' \
+    --exclude 'custom_setting.el' \
+    --exclude '.tt-emacs-install-source' \
     --exclude '*.elc' \
     "$SRC/" "$DEST/"
 else
-  find "$DEST" -mindepth 1 -maxdepth 1 ! -name elpa -exec rm -rf {} +
-  (cd "$SRC" && tar --exclude='./.git' --exclude='./elpa' --exclude='*.elc' -cf - .) | (cd "$DEST" && tar -xf -)
+  # Rsync not present, use old find command (rare)
+  find "$DEST" -mindepth 1 -maxdepth 1 \
+    ! -name elpa \
+    ! -name eln-cache \
+    ! -name custom.el \
+    ! -name custom_setting.el \
+    ! -name .tt-emacs-install-source \
+    -exec rm -rf {} +
+  (cd "$SRC" && tar \
+    --exclude='./.git' \
+    --exclude='./elpa' \
+    --exclude='./eln-cache' \
+    --exclude='./custom.el' \
+    --exclude='./custom_setting.el' \
+    --exclude='./.tt-emacs-install-source' \
+    --exclude='*.elc' \
+    -cf - .) | (cd "$DEST" && tar -xf -)
 fi
 
 printf '%s\n' "$REPO_URL" > "$MARKER"

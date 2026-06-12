@@ -175,6 +175,28 @@ Examples:
 
 When querying live state for shell consumption, prefer forms that return strings via `prin1-to-string` or write explicit output to a temp file.
 
+### Inspecting the user's selected region
+
+When the user refers to the "selected area", "selected region", or similar wording in Emacs, first inspect the active region in the live Emacs session before answering. Use a single `emacsclient` snippet such as:
+
+```sh
+/Applications/Emacs.app/Contents/MacOS/bin/emacsclient --eval \
+  '(prin1-to-string
+    (with-current-buffer (window-buffer (selected-window))
+      (list :buffer (buffer-name)
+            :file buffer-file-name
+            :mark-active mark-active
+            :use-region (use-region-p)
+            :point (point)
+            :mark (and (mark t) (mark t))
+            :selection (when (use-region-p)
+                         (buffer-substring-no-properties
+                          (region-beginning)
+                          (region-end))))))'
+```
+
+If `:use-region` is nil, explain that no active region is visible from the live session and ask the user to reselect it or clarify the target text.
+
 ## Package workflow
 
 The user's live Emacs may contain ad hoc package installations from `M-x package-list-packages`.

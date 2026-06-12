@@ -25,5 +25,6 @@ session*
 
 /.org-id-locations
 /tramp
+/custom.el
 /custom_setting.el
 /*.html
