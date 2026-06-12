@@ -5,7 +5,7 @@ Ground-truth Emacs configuration for T. Tian.
 ## Installation TL;DR
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/alchem0x2A/.emacs.d/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/alchem0x2A/.emacs.d/master/install.sh | bash
 ```
 
 Or from a local checkout:
