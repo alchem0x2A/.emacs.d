@@ -188,6 +188,17 @@ fully visible."
       visible-bell t
       ring-bell-function #'ignore)
 
+;; Keep frames visually minimal and comfortably sized by default.
+(set-face-attribute 'default nil :height 150)
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(add-to-list 'default-frame-alist '(tool-bar-lines . 0))
+(add-to-list 'default-frame-alist '(vertical-scroll-bars . nil))
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+(add-to-list 'initial-frame-alist '(tool-bar-lines . 0))
+(add-to-list 'initial-frame-alist '(vertical-scroll-bars . nil))
+(modify-frame-parameters nil '((tool-bar-lines . 0)
+                               (vertical-scroll-bars . nil)))
+
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (column-number-mode t)
