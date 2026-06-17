@@ -1,10 +1,13 @@
 ;;; init.el --- T. Tian's Emacs init -*- lexical-binding: t; -*-
 
-;;; TT's Emacs Initialization File:
+;;  TT's Emacs Initialization File:
 ;; Single-file Emacs configuration, rebuilt incrementally.
 ;; Section headers use three semicolons so `outline-minor-mode' can fold them.
-;;; Use `tt/toggle-outline' to collapse the headings!
+;; Use `tt/toggle-outline' to collapse the headings!
+;;
+;; Use `curl -fsSL https://raw.githubusercontent.com/alchem0x2A/.emacs.d/master/install.sh | bash' to install / update the current runner
 
+;;;
 ;;; 1. Universal pre-start setup
 
 ;; This setup requires Emacs > 29.1 as the `treesitter' support
@@ -16,8 +19,9 @@
   (error "This init requires Emacs 29.1 or newer; current version is %s"
          emacs-version))
 
- 
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+;; the use-short-answers to make yes / no accept y-or-no-p 
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory)
+      use-short-answers t)
 
 ;; The `package' package itself should be installed
 ;; For Emacs 29.x, we may need to make sure that the vc-use-package
@@ -29,12 +33,12 @@
 (require 'package)
 
 (unless (package-installed-p 'vc-use-package)
-  "The vc-use-package itself must be declared BEFORE the use-package to have"
-  ":vc keyword available."
-  (package-vc-install "https://github.com/slotThe/vc-use-package")
-  )
+  ;; The vc-use-package package itself must be declared BEFORE loading
+  ;; use-package to make the :vc keyword available on Emacs 29.x.
+  (package-vc-install "https://github.com/slotThe/vc-use-package"))
 
 (require 'use-package)
+(require 'outline)
 
 
 ;; GMT+8: prefer TUNA mirrors for package bootstrap reliability
@@ -49,7 +53,8 @@
           ("nongnu" . "https://elpa.nongnu.org/nongnu/")
           ("melpa" . "https://melpa.org/packages/"))))
 
-(package-initialize)
+;; No need for initialize for now
+;;(package-initialize)
 
 ;;; 2 System-wide variables and functions (`tt/' namespace)
 
@@ -100,14 +105,43 @@ fully visible."
     (outline-show-all)
     (outline-hide-sublevels 2)))
 
+(defun tt/update-packages ()
+  "Refresh package archives and upgrade installed ELPA and VC packages."
+  (interactive)
+  (when (y-or-n-p "Refresh package archives and upgrade packages? ")
+    (package-refresh-contents)
+
+    ;; Regular ELPA/MELPA/etc. packages.
+    (if (fboundp 'package-upgrade-all)
+        (package-upgrade-all)
+      (message "`package-upgrade-all' is unavailable in this Emacs."))
+
+    ;; Git/VC packages installed through package-vc / vc-use-package.
+    (if (fboundp 'package-vc-upgrade-all)
+        (package-vc-upgrade-all)
+      (message "`package-vc-upgrade-all' is unavailable in this Emacs."))
+
+    (message "Package update finished.")))
+
+(defconst tt/install-url
+  "https://raw.githubusercontent.com/alchem0x2A/.emacs.d/master/install.sh"
+  "URL of the installer used to install or update this Emacs config.")
+
+(defun tt/update-init ()
+  "Update this Emacs config by running the remote installer script."
+  (interactive)
+  (when (y-or-n-p "Download and run the tt Emacs installer now? ")
+    (async-shell-command
+     (format "curl -fsSL %s | bash" (shell-quote-argument tt/install-url))
+     "*tt/update-init*")))
+
 ;;; 2. Non-platform keybindings
 
 (tt/bind-keys
  '(("C-c t l" . tt/select-current-line)
-   ("C-c t =" . global-text-scale-adjust)
-   ("C-c t +" . global-text-scale-adjust)
-   ("C-c t -" . global-text-scale-adjust)
-   ("C-c t 0" . global-text-scale-adjust)))
+   ("C-c t z" . global-text-scale-adjust)
+   ("C-c t u" . tt/update-packages)
+   ("C-c t U" . tt/update-init)))
 
 ;;; 3. macOS keybindings
 
@@ -116,6 +150,7 @@ fully visible."
   ;; `super', Command bindings are ordinary Emacs `s-' bindings.
   (tt/bind-keys
    '(("s-l" . tt/select-current-line)
+     ;; For macOS this is maybe easier.
      ("s-=" . global-text-scale-adjust)
      ("s-+" . global-text-scale-adjust)
      ("s--" . global-text-scale-adjust)
