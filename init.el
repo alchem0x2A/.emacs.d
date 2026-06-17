@@ -123,8 +123,23 @@ fully visible."
 
     (message "Package update finished.")))
 
+(defconst tt/init-repo-owner
+  "alchem0x2A"
+  "GitHub owner of the repository hosting this Emacs config.")
+
+(defconst tt/init-repo-name
+  ".emacs.d"
+  "GitHub repository name hosting this Emacs config.")
+
+(defconst tt/init-repo-branch
+  "master"
+  "Git branch used by the installer for this Emacs config.")
+
 (defconst tt/install-url
-  "https://raw.githubusercontent.com/alchem0x2A/.emacs.d/master/install.sh"
+  (format "https://raw.githubusercontent.com/%s/%s/%s/install.sh"
+          tt/init-repo-owner
+          tt/init-repo-name
+          tt/init-repo-branch)
   "URL of the installer used to install or update this Emacs config.")
 
 (defun tt/update-init ()
