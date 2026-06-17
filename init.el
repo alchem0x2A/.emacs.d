@@ -20,10 +20,22 @@
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
 ;; The `package' package itself should be installed
+;; For Emacs 29.x, we may need to make sure that the vc-use-package
+;; is installed first.
 
-(require 'package)
-(require 'use-package)
+
+
 (require 'package-vc)
+(require 'package)
+
+(unless (package-installed-p 'vc-use-package)
+  "The vc-use-package itself must be declared BEFORE the use-package to have"
+  ":vc keyword available."
+  (package-vc-install "https://github.com/slotThe/vc-use-package")
+  )
+
+(require 'use-package)
+
 
 ;; GMT+8: prefer TUNA mirrors for package bootstrap reliability
 ;; Otherwise the default gnu and melpa
@@ -50,7 +62,7 @@
 (defconst tt/ns-p (eq window-system 'ns)
   "Non-nil when running the macOS NS GUI port.")
 
-(Defconst tt/macos-command-is-super-p
+(defconst tt/macos-command-is-super-p
   (and tt/ns-p
        (boundp 'ns-command-modifier)
        (eq ns-command-modifier 'super))
@@ -153,3 +165,10 @@ fully visible."
 
 (provide 'init)
 ;;; init.el ends here
+
+
+;; A test package, to be removed later
+(use-package avy
+  :vc (avy :url "https://github.com/abo-abo/avy.git"
+	   :rev :newest)
+  :commands (avy-goto-char avy-goto-word-1))
