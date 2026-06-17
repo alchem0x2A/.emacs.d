@@ -81,6 +81,8 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'custom.el' \
     --exclude 'custom_setting.el' \
     --exclude '.tt-emacs-install-source' \
+    --exclude '*~' \
+    --exclude '*.html' \
     --exclude '*.elc' \
     "$SRC/" "$DEST/"
 else
@@ -99,6 +101,8 @@ else
     --exclude='./custom.el' \
     --exclude='./custom_setting.el' \
     --exclude='./.tt-emacs-install-source' \
+    --exclude='*~' \
+    --exclude='*.html' \
     --exclude='*.elc' \
     -cf - .) | (cd "$DEST" && tar -xf -)
 fi

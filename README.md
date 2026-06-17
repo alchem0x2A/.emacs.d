@@ -24,6 +24,6 @@ If an existing `~/.emacs.d` is not already managed by this installer, it is move
 
 ## Current state
 
-This repo has been reset to a minimal bootstrap state. `init.el` is intentionally empty for now; new configuration should be rebuilt incrementally and kept auditable.
+This repo is being rebuilt as a minimal, single-file Emacs configuration. Active configuration lives in `init.el`; historical configuration files live under `archive/` with their original hierarchy preserved.
 
-Historical configuration files were moved under `archive/` with their original hierarchy preserved, including the old `README.org`.
+Local Custom state belongs in `~/.emacs.d/custom.el` and is intentionally not version-controlled.
