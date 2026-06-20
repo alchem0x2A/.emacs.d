@@ -111,6 +111,16 @@
   (end-of-line)
   (set-mark (line-beginning-position)))
 
+(defun tt/backward-delete-line ()
+  "Delete from point to the beginning of the current line."
+  (interactive)
+  (delete-region (point) (line-beginning-position)))
+
+(defun tt/forward-delete-line ()
+  "Delete from point to the end of the current line."
+  (interactive)
+  (delete-region (point) (line-end-position)))
+
 (defun tt/forward-delete-word-or-subword (&optional arg)
   "Detel a word from the synatx-subword package"
   (interactive "p")
@@ -181,13 +191,14 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 ;; Use `emacs' as the one-stop place for built-in setup and keybindings.
 
-
 (use-package emacs
   :config
   (global-set-key (kbd "C-c t l") #'tt/select-current-line)
   (global-set-key (kbd "C-c t z") #'global-text-scale-adjust)
   (global-set-key (kbd "C-c t u") #'tt/update-packages)
   (global-set-key (kbd "C-c t U") #'tt/update-init)
+  (global-set-key (kbd "s-<backspace>") #'tt/backward-delete-line)
+  (global-set-key (kbd "s-<kp-delete>") #'tt/forward-delete-line)
   (global-set-key (kbd "M-<backspace>") #'tt/backward-delete-word-or-subword)
   (global-set-key (kbd "M-<delete>") #'tt/backward-delete-word-or-subword)
   (when tt/macos-command-is-super-p
