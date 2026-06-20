@@ -64,6 +64,7 @@
 
 ;;; 2 System-wide variables and functions (`tt/' namespace)
 
+;;;; 2.1 tt/ namaspace variables
 (defconst tt/macos-p (eq system-type 'darwin)
   "Non-nil when running on macOS / Darwin.")
 
@@ -79,6 +80,27 @@
        (eq ns-command-modifier 'super))
   "Non-nil when macOS Command currently generates Emacs Super events.")
 
+(defconst tt/init-repo-owner
+  "alchem0x2A"
+  "GitHub owner of the repository hosting this Emacs config.")
+
+(defconst tt/init-repo-name
+  ".emacs.d"
+  "GitHub repository name hosting this Emacs config.")
+
+(defconst tt/init-repo-branch
+  "master"
+  "Git branch used by the installer for this Emacs config.")
+
+(defconst tt/install-url
+  (format "https://raw.githubusercontent.com/%s/%s/%s/install.sh"
+          tt/init-repo-owner
+          tt/init-repo-name
+          tt/init-repo-branch)
+  "URL of the installer used to install or update this Emacs config.")
+
+;;;; 2.2 tt/ namespace defuns
+
 (defun tt/select-current-line ()
   "Select the current line from beginning to end."
   (interactive)
@@ -87,8 +109,7 @@
 
 (defun tt/toggle-outline ()
   "Toggle `outline-minor-mode' for the current buffer.
-
-When enabling it, configure cycling/buttons/highlighting locally and
+ When enabling it, configure cycling/buttons/highlighting locally and
 collapse to top-level headings.  When disabling it, leave the buffer
 fully visible."
   (interactive)
@@ -122,24 +143,7 @@ fully visible."
 
     (message "Package update finished.")))
 
-(defconst tt/init-repo-owner
-  "alchem0x2A"
-  "GitHub owner of the repository hosting this Emacs config.")
 
-(defconst tt/init-repo-name
-  ".emacs.d"
-  "GitHub repository name hosting this Emacs config.")
-
-(defconst tt/init-repo-branch
-  "master"
-  "Git branch used by the installer for this Emacs config.")
-
-(defconst tt/install-url
-  (format "https://raw.githubusercontent.com/%s/%s/%s/install.sh"
-          tt/init-repo-owner
-          tt/init-repo-name
-          tt/init-repo-branch)
-  "URL of the installer used to install or update this Emacs config.")
 
 (defun tt/update-init ()
   "Update this Emacs config by running the remote installer script."
@@ -198,6 +202,10 @@ fully visible."
   (setq visual-fill-column-width 80)
 
 )
+
+(use-package move-text
+  :config
+  (move-text-default-bindings))
 
 
 ;; Keep frames visually minimal and comfortably sized by default.
