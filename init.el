@@ -111,6 +111,13 @@
   (end-of-line)
   (set-mark (line-beginning-position)))
 
+(defun tt/ensure-vendor-and-load (name)
+  "Ensure vendored package NAME exists and add it to `load-path'."
+  (let ((dir (expand-file-name name tt/vendor-dir)))
+    (unless (file-directory-p dir)
+      (error "Missing vendor dir: %s" dir))
+    (add-to-list 'load-path dir)))
+
 (defun tt/backward-delete-line ()
   "Delete from point to the beginning of the current line."
   (interactive)
@@ -197,8 +204,7 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   (global-set-key (kbd "C-c t z") #'global-text-scale-adjust)
   (global-set-key (kbd "C-c t u") #'tt/update-packages)
   (global-set-key (kbd "C-c t U") #'tt/update-init)
-  (global-set-key (kbd "M-<backspace>") #'tt/backward-delete-word-or-subword)
-  (global-set-key (kbd "M-<delete>") #'tt/backward-delete-word-or-subword)
+  
   (when tt/macos-command-is-super-p
     ;; The NS port maps Command through `ns-command-modifier'.  When it is
     ;; `super', Command bindings are ordinary Emacs `s-' bindings.
@@ -244,13 +250,25 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 (use-package syntax-subword
   :init
-  (add-to-list 'load-path (expand-file-name "syntax-subword" tt/vendor-dir))
+  (tt/ensure-vendor-and-load "syntax-subword")
   :config
-  (global-syntax-subword-mode 1))
+  (global-syntax-subword-mode 1)
+  (global-set-key (kbd "M-<backspace>") #'tt/backward-delete-word-or-subword)
+  (global-set-key (kbd "M-<delete>") #'tt/backward-delete-word-or-subword))
+
+(use-package undo-tree
+  :init
+  (tt/ensure-vendor-and-load "undo-tree")
+  :config
+  (global-undo-tree-mode 1)
+  (global-set-key (kbd "C-x u") #'undo-tree-visualize)
+  (when tt/macos-command-is-super-p
+    (global-set-key (kbd "s-z") #'undo-tree-undo)
+    (global-set-key (kbd "s-Z") #'undo-tree-redo)))
 
 (use-package move-text
   :init
-  (add-to-list 'load-path (expand-file-name "move-text" tt/vendor-dir))
+  (tt/ensure-vendor-and-load "move-text")
   :config
   (move-text-default-bindings))
 
