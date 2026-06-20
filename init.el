@@ -59,8 +59,7 @@
     (setq use-package-always-ensure t
           use-package-expand-minimally t))
 
-;; No need for initialize for now
-;;(package-initialize)
+(package-initialize)
 
 ;;; 2 System-wide variables and functions (`tt/' namespace)
 
@@ -99,6 +98,11 @@
           tt/init-repo-branch)
   "URL of the installer used to install or update this Emacs config.")
 
+(defconst tt/vendor-dir
+  (expand-file-name "vendor" (file-name-directory (or load-file-name buffer-file-name)))
+  "Absolute path to vendored third-party Elisp.")
+
+
 ;;;; 2.2 tt/ namespace defuns
 
 (defun tt/select-current-line ()
@@ -106,6 +110,21 @@
   (interactive)
   (end-of-line)
   (set-mark (line-beginning-position)))
+
+(defun tt/forward-delete-word-or-subword (&optional arg)
+  "Detel a word from the synatx-subword package"
+  (interactive "p")
+  (if (bound-and-true-p syntax-subword-mode)
+      (delete-region (point) (save-excursion
+                               (syntax-subword-forward arg)
+                               (point)))
+    (delete-region (point) (save-excursion
+                             (subword-forward arg)
+                             (point)))))
+
+(defun tt/backward-delete-word-or-subword (&optional arg)
+  (interactive "p")
+  (tt/forward-delete-word-or-subword (- arg)))
 
 (defun tt/toggle-outline ()
   "Toggle `outline-minor-mode' for the current buffer.
@@ -161,12 +180,16 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 ;;; 2. Global setup and keybindings
 
 ;; Use `emacs' as the one-stop place for built-in setup and keybindings.
+
+
 (use-package emacs
   :config
   (global-set-key (kbd "C-c t l") #'tt/select-current-line)
   (global-set-key (kbd "C-c t z") #'global-text-scale-adjust)
   (global-set-key (kbd "C-c t u") #'tt/update-packages)
   (global-set-key (kbd "C-c t U") #'tt/update-init)
+  (global-set-key (kbd "M-<backspace>") #'tt/backward-delete-word-or-subword)
+  (global-set-key (kbd "M-<delete>") #'tt/backward-delete-word-or-subword)
   (when tt/macos-command-is-super-p
     ;; The NS port maps Command through `ns-command-modifier'.  When it is
     ;; `super', Command bindings are ordinary Emacs `s-' bindings.
@@ -208,7 +231,15 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 )
 
+(use-package syntax-subword
+  :init
+  (add-to-list 'load-path (expand-file-name "syntax-subword" tt/vendor-dir))
+  :config
+  (global-syntax-subword-mode 1))
+
 (use-package move-text
+  :init
+  (add-to-list 'load-path (expand-file-name "move-text" tt/vendor-dir))
   :config
   (move-text-default-bindings))
 
