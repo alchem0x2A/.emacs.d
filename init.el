@@ -53,6 +53,12 @@
           ("nongnu" . "https://elpa.nongnu.org/nongnu/")
           ("melpa" . "https://melpa.org/packages/"))))
 
+;; Make sure the packages defined in the init file are always
+;; always ensured
+(eval-and-compile
+    (setq use-package-always-ensure t
+          use-package-expand-minimally t))
+
 ;; No need for initialize for now
 ;;(package-initialize)
 
@@ -78,13 +84,6 @@
   (interactive)
   (end-of-line)
   (set-mark (line-beginning-position)))
-
-(defun tt/bind-keys (bindings)
-  "Apply BINDINGS to `global-map'.
-BINDINGS is an alist of (KEY . COMMAND).  A nil COMMAND unbinds KEY."
-  (dolist (binding bindings)
-    (define-key global-map (kbd (car binding)) (cdr binding))))
-
 
 (defun tt/toggle-outline ()
   "Toggle `outline-minor-mode' for the current buffer.
@@ -150,43 +149,56 @@ fully visible."
      (format "curl -fsSL %s | bash" (shell-quote-argument tt/install-url))
      "*tt/update-init*")))
 
-;;; 2. Non-platform keybindings
+;;; 2. Global setup and keybindings
 
-(tt/bind-keys
- '(("C-c t l" . tt/select-current-line)
-   ("C-c t z" . global-text-scale-adjust)
-   ("C-c t u" . tt/update-packages)
-   ("C-c t U" . tt/update-init)))
+;; Use `emacs' as the one-stop place for built-in setup and keybindings.
+(use-package emacs
+  :config
+  (global-set-key (kbd "C-c t l") #'tt/select-current-line)
+  (global-set-key (kbd "C-c t z") #'global-text-scale-adjust)
+  (global-set-key (kbd "C-c t u") #'tt/update-packages)
+  (global-set-key (kbd "C-c t U") #'tt/update-init)
+  (when tt/macos-command-is-super-p
+    ;; The NS port maps Command through `ns-command-modifier'.  When it is
+    ;; `super', Command bindings are ordinary Emacs `s-' bindings.
+    (global-set-key (kbd "s-l") #'tt/select-current-line)
+    (global-set-key (kbd "s-=") #'global-text-scale-adjust)
+    (global-set-key (kbd "s-+") #'global-text-scale-adjust)
+    (global-set-key (kbd "s--") #'global-text-scale-adjust)
+    (global-set-key (kbd "s-0") #'global-text-scale-adjust)
+    (global-set-key (kbd "s-p") nil)
+    (global-set-key (kbd "s-q") nil)
+    (global-set-key (kbd "s-o") nil)
+    (global-set-key (kbd "s-y") nil))
+  (setq
+   inhibit-startup-screen t
+   visible-bell t
+   ring-bell-function #'ignore)
+  
 
-;;; 3. macOS keybindings
+  ;; Sequential interactive setup commands
 
-(when tt/macos-command-is-super-p
-  ;; The NS port maps Command through `ns-command-modifier'.  When it is
-  ;; `super', Command bindings are ordinary Emacs `s-' bindings.
-  (tt/bind-keys
-   '(("s-l" . tt/select-current-line)
-     ;; For macOS this is maybe easier.
-     ("s-=" . global-text-scale-adjust)
-     ("s-+" . global-text-scale-adjust)
-     ("s--" . global-text-scale-adjust)
-     ("s-0" . global-text-scale-adjust)
-     ;; Reserve these for future deliberate choices.
-     ("s-p" . nil)
-     ("s-q" . nil)
-     ("s-o" . nil)
-     ("s-y" . nil))))
+  (menu-bar-mode -1)
+  (size-indication-mode -1)
+  (tool-bar-mode -1)
+  (column-number-mode t)
+  (global-display-line-numbers-mode t)
+  (show-paren-mode t)
+  (electric-pair-mode t)
+  (global-hl-line-mode t) ;; The lines are always highlighted
+  (save-place-mode t)
+  (savehist-mode t)
+  (recentf-mode t)
+  (context-menu-mode t)  ;; Works for macos, if toolbar disabled
+  (global-auto-revert-mode t) ;; always use s-U revert
+  (winner-mode t)
+  (when (fboundp 'visual-fill-column-mode)
+    (visual-fill-column-mode t)) ;; fill column
+  (setq line-move-visual nil)
+  (setq visual-fill-column-width 80)
 
-;;; 4. GNU/Linux keybindings
+)
 
-(when tt/linux-p
-  ;; Add Linux-specific GUI or terminal bindings here when they are proven useful.
-  nil)
-
-;;; 5. Global display setup
-
-(setq inhibit-startup-screen t
-      visible-bell t
-      ring-bell-function #'ignore)
 
 ;; Keep frames visually minimal and comfortably sized by default.
 (set-face-attribute 'default nil :height 150)
@@ -198,18 +210,6 @@ fully visible."
 (add-to-list 'initial-frame-alist '(vertical-scroll-bars . nil))
 (modify-frame-parameters nil '((tool-bar-lines . 0)
                                (vertical-scroll-bars . nil)))
-
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(column-number-mode t)
-(global-display-line-numbers-mode t)
-(show-paren-mode t)
-(save-place-mode t)
-(savehist-mode t)
-(recentf-mode t)
-(context-menu-mode t)
-(global-auto-revert-mode t)
-(winner-mode t)
 
 ;;; 6. Theme setup
 
