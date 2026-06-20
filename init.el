@@ -146,12 +146,17 @@ fully visible."
 
 
 (defun tt/update-init ()
-  "Update this Emacs config by running the remote installer script."
+  "Update this Emacs config by running the remote installer script.
+
+After the install finishes, reload with `M-x load-file' or restart Emacs."
   (interactive)
-  (when (y-or-n-p "Download and run the tt Emacs installer now? ")
-    (async-shell-command
-     (format "curl -fsSL %s | bash" (shell-quote-argument tt/install-url))
-     "*tt/update-init*")))
+  (let ((cmd (format "curl -fsSL %s | bash" (shell-quote-argument tt/install-url))))
+    (when (y-or-n-p (format "Run this installer command? %s " cmd))
+      (async-shell-command cmd "*tt/update-init*")
+      (message "Init files synced. Reload with `M-x load-file' or restart Emacs.")
+      )
+    )
+  )
 
 ;;; 2. Global setup and keybindings
 
