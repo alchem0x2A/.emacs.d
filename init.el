@@ -197,13 +197,13 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   (global-set-key (kbd "C-c t z") #'global-text-scale-adjust)
   (global-set-key (kbd "C-c t u") #'tt/update-packages)
   (global-set-key (kbd "C-c t U") #'tt/update-init)
-  (global-set-key (kbd "s-<backspace>") #'tt/backward-delete-line)
-  (global-set-key (kbd "s-<kp-delete>") #'tt/forward-delete-line)
   (global-set-key (kbd "M-<backspace>") #'tt/backward-delete-word-or-subword)
   (global-set-key (kbd "M-<delete>") #'tt/backward-delete-word-or-subword)
   (when tt/macos-command-is-super-p
     ;; The NS port maps Command through `ns-command-modifier'.  When it is
     ;; `super', Command bindings are ordinary Emacs `s-' bindings.
+    (global-set-key (kbd "s-<backspace>") #'tt/backward-delete-line)
+    (global-set-key (kbd "s-<kp-delete>") #'tt/forward-delete-line)
     (global-set-key (kbd "s-l") #'tt/select-current-line)
     (global-set-key (kbd "s-=") #'global-text-scale-adjust)
     (global-set-key (kbd "s-+") #'global-text-scale-adjust)
