@@ -274,18 +274,21 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 
 (use-package popper
-  :bind (("C-`"   . popper-toggle)
-         ("M-`"   . popper-cycle)
-         ("C-M-`" . popper-toggle-type))
   :init
+  (tt/ensure-vendor-and-load "popper")
+  :bind (("C-`" . popper-toggle)
+         ("M-`" . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :config
   (setq popper-reference-buffers
         '("\\*Messages\\*"
           "Output\\*$"
           "\\*Async Shell Command\\*"
           help-mode
           compilation-mode))
-  (popper-mode +1)
   (popper-echo-mode +1))                ; For echo area hints
+  (popper-mode 1)
+  (popper-echo-mode 1))
 
 
 ;; Keep frames visually minimal and comfortably sized by default.
