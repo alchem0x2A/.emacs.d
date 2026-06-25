@@ -194,9 +194,10 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
     )
   )
 
-;;; 2. Global setup and keybindings
+;;; 3. Global setup and keybindings
 
-;; Use `emacs' as the one-stop place for built-in setup and keybindings.
+;; Use `emacs' as the one-stop place for built-in setup and
+;; keybindings.
 
 (use-package emacs
   :config
@@ -206,8 +207,9 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   (global-set-key (kbd "C-c t U") #'tt/update-init)
   
   (when tt/macos-command-is-super-p
-    ;; The NS port maps Command through `ns-command-modifier'.  When it is
-    ;; `super', Command bindings are ordinary Emacs `s-' bindings.
+    ;; The NS port maps Command through `ns-command-modifier'.  When
+    ;; it is `super', Command bindings are ordinary Emacs `s-'
+    ;; bindings.
     (global-set-key (kbd "s-<backspace>") #'tt/backward-delete-line)
     (global-set-key (kbd "s-<kp-delete>") #'tt/forward-delete-line)
     (global-set-key (kbd "s-l") #'tt/select-current-line)
@@ -219,13 +221,22 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
     (global-set-key (kbd "s-q") nil)
     (global-set-key (kbd "s-o") nil)
     (global-set-key (kbd "s-y") nil))
+;;;; 3.1 Global appearance setup in `use-package emacs'
+  ;; Appearance power-up. Some variables to setup
   (setq
    inhibit-startup-screen t
    visible-bell t
-   ring-bell-function #'ignore)
-  
+   ring-bell-function #'ignore
+   line-move-visual nil
+   )
 
-  ;; Sequential interactive setup commands
+  ;; Some default setup 
+  (setq-default
+   fill-column 72    ;; slightly wider fill-column
+   ) 
+
+  ;; Sequential interactive setup commands these modes are not worth calling
+  ;; use-package for individual setup as default are good enough
 
   (menu-bar-mode -1)
   (size-indication-mode -1)
@@ -241,12 +252,21 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   (context-menu-mode t)  ;; Works for macos, if toolbar disabled
   (global-auto-revert-mode t) ;; always use s-U revert
   (winner-mode t)
-  (when (fboundp 'visual-fill-column-mode)
-    (visual-fill-column-mode t)) ;; fill column
-  (setq line-move-visual nil)
-  (setq visual-fill-column-width 80)
+
+  ;; Default font size to be 150 weights
+  (set-face-attribute 'default nil :height 150)
+
+  ;; Make sure default and initial frames use maximized
+  ;; full-screen appearance, while disable scroolbar
+  (dolist (frame-params '((fullscreen . maximized)
+                          (tool-bar-lines . 0)
+                          (vertical-scroll-bars . nil)))
+    (add-to-list 'default-frame-alist frame-params)
+    (add-to-list 'initial-frame-alist frame-params))
 
 )
+
+;;;; 3.2 Vendored packages for editing / appearance (light-weight)
 
 (use-package syntax-subword
   :init
@@ -272,6 +292,13 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   :config
   (move-text-default-bindings))
 
+(use-package visual-fill-column
+  :init
+  (tt/ensure-vendor-and-load "visual-fill-column")
+  :custom
+  (visual-fill-column-width 88)  
+  :config
+  (global-visual-fill-column-mode 1))
 
 (use-package popper
   :init
@@ -288,18 +315,6 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
           compilation-mode))
   (popper-mode 1)
   (popper-echo-mode 1))
-
-
-;; Keep frames visually minimal and comfortably sized by default.
-(set-face-attribute 'default nil :height 150)
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-(add-to-list 'default-frame-alist '(tool-bar-lines . 0))
-(add-to-list 'default-frame-alist '(vertical-scroll-bars . nil))
-(add-to-list 'initial-frame-alist '(fullscreen . maximized))
-(add-to-list 'initial-frame-alist '(tool-bar-lines . 0))
-(add-to-list 'initial-frame-alist '(vertical-scroll-bars . nil))
-(modify-frame-parameters nil '((tool-bar-lines . 0)
-                               (vertical-scroll-bars . nil)))
 
 ;;; 6. Theme setup
 
