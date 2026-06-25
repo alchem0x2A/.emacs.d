@@ -286,7 +286,6 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
           "\\*Async Shell Command\\*"
           help-mode
           compilation-mode))
-  (popper-echo-mode +1))                ; For echo area hints
   (popper-mode 1)
   (popper-echo-mode 1))
 
