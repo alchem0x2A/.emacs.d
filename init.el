@@ -102,6 +102,43 @@
   (expand-file-name "vendor" (file-name-directory (or load-file-name buffer-file-name)))
   "Absolute path to vendored third-party Elisp.")
 
+(defconst tt/treesit-supported-p
+  (and (fboundp 'treesit-available-p)
+       (treesit-available-p))
+  "Non-nil when this Emacs can use tree-sitter.")
+
+(defconst tt/treesit-abi-version
+  (when (and tt/treesit-supported-p
+             (fboundp 'treesit-library-abi-version))
+    (treesit-library-abi-version))
+  "Tree-sitter grammar ABI version supported by this Emacs.")
+
+(defconst tt/treesit-auto-langs
+  '(python c cpp make cmake lua typescript tsx json yaml markdown org css html toml)
+  "Tree-sitter grammars managed by `treesit-auto' in this config.")
+
+(defconst tt/treesit-abi14-revisions
+  '((python . "v0.23.6")
+    (c . "v0.23.6")
+    (cpp . "v0.23.4")
+    (make . "v1.1.1")
+    (cmake . "v0.7.2")
+    (lua . "v0.3.0")
+    (typescript . "v0.23.2")
+    (tsx . "v0.23.2")
+    (json . "v0.24.8")
+    (yaml . "v0.7.2")
+    (markdown . "v0.4.1")
+    (org . "v1.3.1")
+    (css . "v0.23.2")
+    (html . "v0.23.2")
+    (toml . "v0.7.0"))
+  "Known grammar revisions whose generated parsers work with ABI 14.")
+
+(defconst tt/treesit-abi15-revisions
+  '((cpp . nil))
+  "Grammar revision overrides for ABI 15 and newer.")
+
 
 ;;;; 2.2 tt/ namespace defuns
 
@@ -117,6 +154,24 @@
     (unless (file-directory-p dir)
       (error "Missing vendor dir: %s" dir))
     (add-to-list 'load-path dir)))
+
+(defun tt/treesit-auto-recipe-for (lang)
+  "Return the `treesit-auto' recipe for LANG, or nil."
+  (seq-find (lambda (recipe)
+              (eq (treesit-auto-recipe-lang recipe) lang))
+            treesit-auto-recipe-list))
+
+(defun tt/treesit-auto-apply-abi-revisions ()
+  "Apply TT's tree-sitter grammar revision pins for this Emacs ABI."
+  (when (eq tt/treesit-abi-version 14)
+    (dolist (entry tt/treesit-abi14-revisions)
+      (when-let ((recipe (tt/treesit-auto-recipe-for (car entry))))
+        (setf (aref recipe 7) (cdr entry)))))
+  (when (and tt/treesit-abi-version
+             (>= tt/treesit-abi-version 15))
+    (dolist (entry tt/treesit-abi15-revisions)
+      (when-let ((recipe (tt/treesit-auto-recipe-for (car entry))))
+        (setf (aref recipe 6) (cdr entry))))))
 
 (defun tt/backward-delete-line ()
   "Delete from point to the beginning of the current line."
@@ -271,6 +326,7 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 ;;;; 3.2 Vendored packages for editing / appearance (light-weight)
 
 (use-package syntax-subword
+  :ensure nil
   :init
   (tt/ensure-vendor-and-load "syntax-subword")
   :config
@@ -279,6 +335,7 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   (global-set-key (kbd "M-<delete>") #'tt/backward-delete-word-or-subword))
 
 (use-package undo-tree
+  :ensure nil
   :init
   (tt/ensure-vendor-and-load "undo-tree")
   :diminish undo-tree-mode
@@ -290,6 +347,7 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
     (global-set-key (kbd "s-Z") #'undo-tree-redo)))
 
 (use-package move-text
+  :ensure nil
   :init
   (tt/ensure-vendor-and-load "move-text")
   :config
@@ -297,16 +355,19 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 ;; Packages for hiding & simplify mode lines
 (use-package diminish
+  :ensure nil
   :init
   (tt/ensure-vendor-and-load "diminish"))
 
 ;; Packages for hiding & simplify mode lines
 (use-package delight
+  :ensure nil
   :init
   (tt/ensure-vendor-and-load "delight"))
 
 ;; Similar to fill-column but on a visual face
 (use-package visual-fill-column
+  :ensure nil
   :init
   (tt/ensure-vendor-and-load "visual-fill-column")
   :diminish visual-fill-column-mode
@@ -318,6 +379,7 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 ;; Toggle visibility of unwanted ephemeral buffers
 
 (use-package popper
+  :ensure nil
   :init
   (tt/ensure-vendor-and-load "popper")
   :bind (("C-`" . popper-toggle)
@@ -401,14 +463,21 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 ;; package repo: https://github.com/renzmann/treesit-auto
 ;; for our usage, M-x `treesit-auto-install-all' may be just enough
 (use-package treesit-auto
+  :if tt/treesit-supported-p
+  :ensure nil
+  :init
+  (tt/ensure-vendor-and-load "treesit-auto")
   :config
+  (setq treesit-auto-install nil
+        treesit-auto-langs tt/treesit-auto-langs)
+  (tt/treesit-auto-apply-abi-revisions)
   (global-treesit-auto-mode 1)
-  (treesit-auto-add-to-auto-mode-alist 'all)
+  (treesit-auto-add-to-auto-mode-alist)
   (let* ((missing (seq-filter (lambda (lang) (not (treesit-ready-p lang t)))
                               treesit-auto-langs))
          (count (length missing)))
     (when (> count 0)
-      (message "There are %d tree-sitter grammars (%s) not installed. Manually install with M-x treesit-auto-install-all or M-x treesit-install-language-grammar."
+      (message "There are %d tree-sitter grammars (%s) not installed or not usable. Manually install with M-x treesit-auto-install-all or M-x treesit-install-language-grammar."
                count
                (mapconcat #'symbol-name missing ", ")))))
 
