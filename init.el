@@ -279,6 +279,7 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 (use-package undo-tree
   :init
   (tt/ensure-vendor-and-load "undo-tree")
+  :diminish undo-tree-mode
   :config
   (global-undo-tree-mode 1)
   (global-set-key (kbd "C-x u") #'undo-tree-visualize)
@@ -292,11 +293,20 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   :config
   (move-text-default-bindings))
 
+(use-package diminish
+  :init
+  (tt/ensure-vendor-and-load "diminish"))
+
+(use-package delight
+  :init
+  (tt/ensure-vendor-and-load "delight"))
+
 (use-package visual-fill-column
   :init
   (tt/ensure-vendor-and-load "visual-fill-column")
+  :diminish visual-fill-column-mode
   :custom
-  (visual-fill-column-width 88)  
+  (visual-fill-column-width 88)
   :config
   (global-visual-fill-column-mode 1))
 
@@ -317,6 +327,13 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   (popper-echo-mode 1))
 
 ;;; 6. Theme setup
+
+(use-package rainbow-mode
+  :diminish rainbow-mode
+  :config
+  (rainbow-mode 1))
+
+
 
 ;; Add only one proven theme setup here later.
 
