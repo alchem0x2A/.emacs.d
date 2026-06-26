@@ -322,7 +322,22 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 ;;; 7. Tree-sitter setup
 
-;; Add tree-sitter language setup here later.
+;; The package treesit-auto will provide support for auto installation
+;; of grammars,and load by auto-fallback mechanism
+;; package repo: https://github.com/renzmann/treesit-auto
+;; for our usage, M-x `treesit-auto-install-all' may be just enough
+(use-package treesit-auto
+  :config
+  (global-treesit-auto-mode 1)
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (let* ((missing (seq-filter (lambda (lang) (not (treesit-ready-p lang t)))
+                              treesit-auto-langs))
+         (count (length missing)))
+    (when (> count 0)
+      (message "There are %d tree-sitter grammars (%s) not installed. Manually install with M-x treesit-auto-install-all or M-x treesit-install-language-grammar."
+               count
+               (mapconcat #'symbol-name missing ", ")))))
+
 
 ;;; 8. Others
 
