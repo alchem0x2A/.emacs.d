@@ -143,6 +143,8 @@
   (interactive "p")
   (tt/forward-delete-word-or-subword (- arg)))
 
+
+
 (defun tt/toggle-outline ()
   "Toggle `outline-minor-mode' for the current buffer.
  When enabling it, configure cycling/buttons/highlighting locally and
@@ -333,19 +335,53 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 ;;; 6. Theme setup
 
-(use-package moe-theme
-  :config
+;; The tt/ namespace functions will be moved here
+(defun tt/moe-light-base ()
+  "Load Moe light theme with TT's common Moe options."
   (setq moe-theme-highlight-buffer-id t
         moe-theme-modeline-color 'purple)
-  (moe-light)
-  (set-face-attribute 'default nil :background "#ffebeb" :foreground "#3a2d33")
-  (set-face-attribute 'cursor nil :background "#b03060")
-  (set-face-attribute 'region nil :background "#efc2cf")
-  (set-face-attribute 'hl-line nil :background "#d7f8c8")
+  (moe-light))
+
+(defun tt/moe-pink-terminal ()
+  "Apply higher-contrast pink Moe overrides for terminal frames."
+  (interactive)
+  (tt/moe-light-base)
+  (set-face-attribute 'default nil :background "#f3d2d3" :foreground "#3a2d33")
+  ;;(set-face-attribute 'cursor nil :background "#b03060")
+  ;;(set-face-attribute 'region nil :background "#e3aeb8")
+  ;;(set-face-attribute 'hl-line nil :background "#c3f2b0")
+  (set-face-attribute 'fringe nil :background "#efc5c6")
+  (set-face-attribute 'vertical-border nil :foreground "#c78d95")
+  (set-face-attribute 'line-number nil :foreground "#6b5860" :background "#efc5c6")
+  (set-face-attribute 'line-number-current-line nil :foreground "#4f3140" :background "#e3aeb8"))
+
+(defun tt/moe-pink-gui ()
+  "Apply light pink Moe overrides for GUI/rich-color frames."
+  (interactive)
+  (tt/moe-light-base)
+  (set-face-attribute 'default nil :background "#fff5f5" :foreground "#3a2d33")
+  ;;(set-face-attribute 'cursor nil :background "#b03060")
+  ;;(set-face-attribute 'region nil :background "#efc2cf")
+  ;;(set-face-attribute 'hl-line nil :background "#d7f8c8")
   (set-face-attribute 'fringe nil :background "#f4dada")
   (set-face-attribute 'vertical-border nil :foreground "#d2aeb6")
   (set-face-attribute 'line-number nil :foreground "#7a6269" :background "#f4dada")
   (set-face-attribute 'line-number-current-line nil :foreground "#4f3140" :background "#e9b8c2"))
+
+
+(defun tt/moe-pink ()
+  "Apply TT's pink Moe face overrides for the current frame type."
+  (interactive)
+  (if (display-graphic-p)
+      (tt/moe-pink-gui)
+    (tt/moe-pink-terminal)))
+
+
+
+
+(use-package moe-theme
+  :config
+  (tt/moe-pink))
 
 ;; Replace hex color with name  
 (use-package rainbow-mode
