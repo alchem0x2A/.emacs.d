@@ -293,14 +293,17 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   :config
   (move-text-default-bindings))
 
+;; Packages for hiding & simplify mode lines
 (use-package diminish
   :init
   (tt/ensure-vendor-and-load "diminish"))
 
+;; Packages for hiding & simplify mode lines
 (use-package delight
   :init
   (tt/ensure-vendor-and-load "delight"))
 
+;; Similar to fill-column but on a visual face
 (use-package visual-fill-column
   :init
   (tt/ensure-vendor-and-load "visual-fill-column")
@@ -309,6 +312,8 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   (visual-fill-column-width 88)
   :config
   (global-visual-fill-column-mode 1))
+
+;; Toggle visibility of unwanted ephemeral buffers
 
 (use-package popper
   :init
@@ -328,6 +333,21 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 ;;; 6. Theme setup
 
+(use-package moe-theme
+  :config
+  (setq moe-theme-highlight-buffer-id t
+        moe-theme-modeline-color 'purple)
+  (moe-light)
+  (set-face-attribute 'default nil :background "#ffebeb" :foreground "#3a2d33")
+  (set-face-attribute 'cursor nil :background "#b03060")
+  (set-face-attribute 'region nil :background "#efc2cf")
+  (set-face-attribute 'hl-line nil :background "#d7f8c8")
+  (set-face-attribute 'fringe nil :background "#f4dada")
+  (set-face-attribute 'vertical-border nil :foreground "#d2aeb6")
+  (set-face-attribute 'line-number nil :foreground "#7a6269" :background "#f4dada")
+  (set-face-attribute 'line-number-current-line nil :foreground "#4f3140" :background "#e9b8c2"))
+
+;; Replace hex color with name  
 (use-package rainbow-mode
   :diminish rainbow-mode
   :config
