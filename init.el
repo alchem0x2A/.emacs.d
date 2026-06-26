@@ -234,6 +234,8 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
     (global-set-key (kbd "s-/") #'comment-dwim)
     (global-set-key (kbd "s-]") #'indent-rigidly)
     (global-set-key (kbd "s-[") #'indent-rigidly)
+    (global-set-key (kbd "s-<up>") #'beginning-of-buffer)
+    (global-set-key (kbd "s-<down>") #'end-of-buffer)
     (global-set-key (kbd "s-l") #'tt/select-current-line)
     (global-set-key (kbd "s-=") #'global-text-scale-adjust)
     (global-set-key (kbd "s-+") #'global-text-scale-adjust)
@@ -287,6 +289,16 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
     (add-to-list 'initial-frame-alist frame-params))
 
 )
+
+;; Use windmove to activate multiple window movement
+(use-package windmove
+  :ensure nil
+  :config
+  (when tt/macos-command-is-super-p
+    (global-set-key (kbd "M-s-<up>") #'windmove-up)
+    (global-set-key (kbd "M-s-<down>") #'windmove-down)
+    (global-set-key (kbd "M-s-<left>") #'windmove-left)
+    (global-set-key (kbd "M-s-<right>") #'windmove-right)))
 
 ;;;; 3.2 Vendored packages for editing / appearance (light-weight)
 
