@@ -102,44 +102,6 @@
   (expand-file-name "vendor" (file-name-directory (or load-file-name buffer-file-name)))
   "Absolute path to vendored third-party Elisp.")
 
-(defconst tt/treesit-supported-p
-  (and (fboundp 'treesit-available-p)
-       (treesit-available-p))
-  "Non-nil when this Emacs can use tree-sitter.")
-
-(defconst tt/treesit-abi-version
-  (when (and tt/treesit-supported-p
-             (fboundp 'treesit-library-abi-version))
-    (treesit-library-abi-version))
-  "Tree-sitter grammar ABI version supported by this Emacs.")
-
-(defconst tt/treesit-auto-langs
-  '(python c cpp make cmake lua typescript tsx json yaml markdown org css html toml)
-  "Tree-sitter grammars managed by `treesit-auto' in this config.")
-
-(defconst tt/treesit-abi14-revisions
-  '((python . "v0.23.6")
-    (c . "v0.23.6")
-    (cpp . "v0.23.4")
-    (make . "v1.1.1")
-    (cmake . "v0.7.2")
-    (lua . "v0.3.0")
-    (typescript . "v0.23.2")
-    (tsx . "v0.23.2")
-    (json . "v0.24.8")
-    (yaml . "v0.7.2")
-    (markdown . "v0.4.1")
-    (org . "v1.3.1")
-    (css . "v0.23.2")
-    (html . "v0.23.2")
-    (toml . "v0.7.0"))
-  "Known grammar revisions whose generated parsers work with ABI 14.")
-
-(defconst tt/treesit-abi15-revisions
-  '((cpp . nil))
-  "Grammar revision overrides for ABI 15 and newer.")
-
-
 ;;;; 2.2 tt/ namespace defuns
 
 (defun tt/select-current-line ()
@@ -462,6 +424,53 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 ;; of grammars,and load by auto-fallback mechanism
 ;; package repo: https://github.com/renzmann/treesit-auto
 ;; for our usage, M-x `treesit-auto-install-all' may be just enough
+;; 2026-06-26: a bug fix was added to make sure that the ABI 14 compatible
+;; treesit packages can be added.
+
+
+(defconst tt/treesit-supported-p
+  (and (fboundp 'treesit-available-p)
+       (treesit-available-p))
+  "Non-nil when this Emacs can use tree-sitter.")
+
+(defconst tt/treesit-abi-version
+  (when (and tt/treesit-supported-p
+             (fboundp 'treesit-library-abi-version))
+    (treesit-library-abi-version))
+  "Tree-sitter grammar ABI version supported by this Emacs.")
+
+(defconst tt/treesit-auto-langs
+  '(python c cpp bash dockerfile make cmake lua javascript typescript tsx
+           json yaml markdown org css html toml julia)
+  "Tree-sitter grammars managed by `treesit-auto' in this config.")
+
+(defconst tt/treesit-abi14-revisions
+  '((python . "v0.23.6")
+    (c . "v0.23.6")
+    (cpp . "v0.23.4")
+    (bash . "v0.23.3")
+    (dockerfile . "v0.2.0")
+    (make . "v1.1.1")
+    (cmake . "v0.7.2")
+    (lua . "v0.3.0")
+    (javascript . "v0.23.1")
+    (typescript . "v0.23.2")
+    (tsx . "v0.23.2")
+    (json . "v0.24.8")
+    (yaml . "v0.7.2")
+    (markdown . "v0.4.1")
+    (org . "v1.3.1")
+    (css . "v0.23.2")
+    (html . "v0.23.2")
+    (toml . "v0.7.0")
+    (julia . "v0.23.1"))
+  "Known grammar revisions whose generated parsers work with ABI 14.")
+
+(defconst tt/treesit-abi15-revisions
+  '((cpp . nil))
+  "Grammar revision overrides for ABI 15 and newer.")
+
+
 (use-package treesit-auto
   :if tt/treesit-supported-p
   :ensure nil
