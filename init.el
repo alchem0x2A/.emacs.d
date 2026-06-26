@@ -231,6 +231,9 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
     ;; bindings.
     (global-set-key (kbd "s-<backspace>") #'tt/backward-delete-line)
     (global-set-key (kbd "s-<kp-delete>") #'tt/forward-delete-line)
+    (global-set-key (kbd "s-/") #'comment-dwim)
+    (global-set-key (kbd "s-]") #'indent-rigidly)
+    (global-set-key (kbd "s-[") #'indent-rigidly)
     (global-set-key (kbd "s-l") #'tt/select-current-line)
     (global-set-key (kbd "s-=") #'global-text-scale-adjust)
     (global-set-key (kbd "s-+") #'global-text-scale-adjust)
