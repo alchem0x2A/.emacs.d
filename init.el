@@ -360,7 +360,77 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   (popper-mode 1)
   (popper-echo-mode 1))
 
-;;; 6. Theme setup
+;;;; 3.3 Special editing: multiple cursors
+;; The multiple cursors functionalities are adapted from
+;; vendored package, but allowed using own key bindings
+
+(defun tt/mc-toggle-cursor-on-click (event)
+  "Add or remove a fake cursor at mouse EVENT without enabling MC mode."
+  (interactive "e")
+  (if multiple-cursors-mode
+      (message "Cannot toggle fake cursor while `multiple-cursors-mode' is active.")
+    (mouse-minibuffer-check event)
+    "The following are taken from the old mc/toggle-cursor-on-click without
+calling the last activation"
+    (let ((position (event-end event)))
+      (unless (windowp (posn-window position))
+        (error "Position not in text area of window"))
+      (select-window (posn-window position))
+      (when-let ((pt (posn-point position)))
+        (when (numberp pt)
+          (let ((existing (mc/fake-cursor-at-point pt)))
+            (if existing
+                (progn
+                  (mc/remove-fake-cursor existing)
+                  (message "Removed fake cursor. Run M-x multiple-cursors-mode to edit."))
+              (save-excursion
+                (goto-char pt)
+                (mc/create-fake-cursor-at-point))
+              (message "Added fake cursor. Run M-x multiple-cursors-mode to edit."))))))))
+
+(defun tt/mc-toggle-cursor-at-point ()
+  "Add or remove a multiple-cursors fake cursor at point."
+  (interactive)
+  (if multiple-cursors-mode
+      (message "Cannot toggle fake cursor while `multiple-cursors-mode' is active.")
+    (let ((existing (mc/fake-cursor-at-point)))
+      (if existing
+          (progn
+            (mc/remove-fake-cursor existing)
+            (message "Removed fake cursor. Run M-x multiple-cursors-mode to edit."))
+        (mc/create-fake-cursor-at-point)
+        (message "Added fake cursor. Run M-x multiple-cursors-mode to edit.")))))
+
+(defun tt/mc-use-one-fake-cursor-as-real-cursor (&rest _)
+    "Use one fake cursor as point before enabling `multiple-cursors-mode'.
+
+This keeps the number of editing locations equal to the number of
+manually placed fake cursors, instead of adding the original point as an
+extra editing location."
+    (unless multiple-cursors-mode
+      (when-let ((cursor (car (sort (mc/all-fake-cursors)
+                                    (lambda (a b)
+                                      (< (overlay-start a)
+                                         (overlay-start b)))))))
+        (mc/pop-state-from-overlay cursor))))
+
+(use-package multiple-cursors
+  :ensure nil
+  :init
+  (tt/ensure-vendor-and-load "multiple-cursors")
+  ;; Mouse bindings also need the corresponding down event unbound.
+  (global-unset-key (kbd "M-<down-mouse-1>"))
+  :bind (("M-<mouse-1>" . tt/mc-toggle-cursor-on-click)
+         ("C-S-SPC" . tt/mc-toggle-cursor-at-point))
+  :config
+
+  (advice-add #'multiple-cursors-mode :before #'tt/mc-use-one-fake-cursor-as-real-cursor)
+  (add-to-list 'mc/cmds-to-run-once #'tt/mc-toggle-cursor-on-click)
+  (add-to-list 'mc/cmds-to-run-once #'tt/mc-toggle-cursor-at-point)
+  (add-to-list 'mc/cmds-to-run-once #'multiple-cursors-mode))
+
+
+;;; 4. Theme setup
 
 ;; The tt/ namespace functions will be moved here
 (defun tt/moe-light-base ()
@@ -421,7 +491,7 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 ;; Add only one proven theme setup here later.
 
-;;; 7. Tree-sitter setup
+;;; 5. Tree-sitter setup
 
 ;; The package treesit-auto will provide support for auto installation
 ;; of grammars,and load by auto-fallback mechanism
@@ -494,7 +564,7 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
                (mapconcat #'symbol-name missing ", ")))))
 
 
-;;; 8. Others
+;;; 6. Others
 
 (when (file-exists-p custom-file)
   (load custom-file nil 'nomessage))
