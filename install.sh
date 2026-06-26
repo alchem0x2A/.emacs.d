@@ -75,36 +75,22 @@ fi
 log "installing files to $DEST"
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --delete -P \
-    --exclude '.git/' \
-    --exclude 'elpa/' \
-    --exclude 'eln-cache/' \
-    --exclude 'custom.el' \
-    --exclude 'custom_setting.el' \
-    --exclude '.tt-emacs-install-source' \
     --exclude '*~' \
-    --exclude '*.html' \
     --exclude '*.elc' \
+    --include '/init.el' \
+    --include '/vendor/' \
+    --include '/vendor/***' \
+    --exclude '*' \
     "$SRC/" "$DEST/"
 else
-  # Rsync not present, use old find command (rare)
-  find "$DEST" -mindepth 1 -maxdepth 1 \
-    ! -name elpa \
-    ! -name eln-cache \
-    ! -name custom.el \
-    ! -name custom_setting.el \
-    ! -name .tt-emacs-install-source \
-    -exec rm -rf {} +
-  (cd "$SRC" && tar \
-    --exclude='./.git' \
-    --exclude='./elpa' \
-    --exclude='./eln-cache' \
-    --exclude='./custom.el' \
-    --exclude='./custom_setting.el' \
-    --exclude='./.tt-emacs-install-source' \
-    --exclude='*~' \
-    --exclude='*.html' \
-    --exclude='*.elc' \
-    -cf - .) | (cd "$DEST" && tar -xf -)
+  # Rsync not present: replace only the managed files/directories.
+  rm -f "$DEST/init.el"
+  rm -rf "$DEST/vendor"
+  cp "$SRC/init.el" "$DEST/init.el"
+  if [ -d "$SRC/vendor" ]; then
+    mkdir -p "$DEST/vendor"
+    (cd "$SRC/vendor" && tar --exclude='*~' --exclude='*.elc' -cf - .) | (cd "$DEST/vendor" && tar -xf -)
+  fi
 fi
 
 printf '%s\n' "$REPO_URL" > "$MARKER"

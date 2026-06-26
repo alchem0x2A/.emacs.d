@@ -346,14 +346,15 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
   "Apply higher-contrast pink Moe overrides for terminal frames."
   (interactive)
   (tt/moe-light-base)
-  (set-face-attribute 'default nil :background "#f3d2d3" :foreground "#3a2d33")
+  (set-face-attribute 'default nil :background "#f6e0e0" :foreground "#3a2d33")
   ;;(set-face-attribute 'cursor nil :background "#b03060")
   ;;(set-face-attribute 'region nil :background "#e3aeb8")
   ;;(set-face-attribute 'hl-line nil :background "#c3f2b0")
   (set-face-attribute 'fringe nil :background "#efc5c6")
   (set-face-attribute 'vertical-border nil :foreground "#c78d95")
-  (set-face-attribute 'line-number nil :foreground "#6b5860" :background "#efc5c6")
-  (set-face-attribute 'line-number-current-line nil :foreground "#4f3140" :background "#e3aeb8"))
+  (set-face-attribute 'line-number nil :foreground "#6b5860" :background "#cfb6b6")
+  ;;(set-face-attribute 'line-number-current-line nil :foreground "#4f3140" :background "#e3aeb8")
+  )
 
 (defun tt/moe-pink-gui ()
   "Apply light pink Moe overrides for GUI/rich-color frames."
