@@ -39,6 +39,7 @@
 
 (require 'use-package)
 (require 'outline)
+(require 'seq)
 
 
 ;; GMT+8: prefer TUNA mirrors for package bootstrap reliability
@@ -102,6 +103,7 @@
   (expand-file-name "vendor" (file-name-directory (or load-file-name buffer-file-name)))
   "Absolute path to vendored third-party Elisp.")
 
+
 ;;;; 2.2 tt/ namespace defuns
 
 (defun tt/select-current-line ()
@@ -116,6 +118,7 @@
     (unless (file-directory-p dir)
       (error "Missing vendor dir: %s" dir))
     (add-to-list 'load-path dir)))
+
 
 (defun tt/treesit-auto-recipe-for (lang)
   "Return the `treesit-auto' recipe for LANG, or nil."
@@ -302,6 +305,13 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 ;;;; 3.2 Vendored packages for editing / appearance (light-weight)
 
+;; fake text
+(use-package lorem-ipsum
+  :ensure nil
+  :init
+  (tt/ensure-vendor-and-load "lorem-ipsum"))
+
+;; respect subword hyphen etc
 (use-package syntax-subword
   :ensure nil
   :init
@@ -442,7 +452,147 @@ extra editing location."
   (add-to-list 'mc/cmds-to-run-once #'multiple-cursors-mode))
 
 
-;;; 4. Theme setup
+;;; 4. Emacs-local micromamba environment
+
+(defconst tt/micromamba-dir
+  (expand-file-name "micromamba" user-emacs-directory)
+  "Directory for TT's managed micromamba executable.")
+
+(defconst tt/micromamba-managed-executable
+  (expand-file-name "bin/micromamba" tt/micromamba-dir)
+  "Path to TT's managed micromamba executable.")
+
+(defconst tt/conda-env-prefix
+  (expand-file-name "conda-env" user-emacs-directory)
+  "Prefix for TT's Emacs-local micromamba environment.")
+
+(defconst tt/conda-env-bin-dir
+  (expand-file-name "bin" tt/conda-env-prefix)
+  "Bin directory for TT's Emacs-local micromamba environment.")
+
+(defconst tt/conda-env-core-packages
+  '("python" "pip" "uv" "ruff" "nodejs" "ripgrep" "fd-find")
+  "Core conda-forge packages for TT's Emacs-local tool environment.")
+
+(defconst tt/conda-env-core-tools
+  '("python" "pip" "uv" "ruff" "node" "npm" "rg" "fd")
+  "Executable names expected from `tt/conda-env-core-packages'.")
+
+(defun tt/conda-env-add-to-path ()
+  "Add TT's Emacs-local micromamba environment to `exec-path' and PATH.
+
+This is harmless when the environment does not exist yet."
+  (add-to-list 'exec-path tt/conda-env-bin-dir)
+  (let* ((path (or (getenv "PATH") ""))
+         (parts (split-string path path-separator t)))
+    (unless (member tt/conda-env-bin-dir parts)
+      (setenv "PATH" (concat tt/conda-env-bin-dir path-separator path)))))
+
+(defun tt/micromamba-platform ()
+  "Return the micromamba download platform for this system."
+  (pcase (list system-type system-configuration)
+    (`(darwin ,config) (if (string-match-p "aarch64\\|arm64" config) "osx-arm64" "osx-64"))
+    (`(gnu/linux ,config) (if (string-match-p "aarch64\\|arm64" config) "linux-aarch64" "linux-64"))
+    (_ (error "Unsupported micromamba platform: %s %s" system-type system-configuration))))
+
+(defun tt/micromamba-url ()
+  "Return the official latest micromamba download URL for this system."
+  (format "https://micro.mamba.pm/api/micromamba/%s/latest" (tt/micromamba-platform)))
+
+(defun tt/micromamba-executable ()
+  "Return system micromamba or TT's managed micromamba, or nil."
+  (or (executable-find "micromamba")
+      (when (file-executable-p tt/micromamba-managed-executable)
+        tt/micromamba-managed-executable)))
+
+(defun tt/micromamba-install-command ()
+  "Build the command that installs micromamba under `tt/micromamba-dir'."
+  (let ((url (tt/micromamba-url))
+        (dir (shell-quote-argument tt/micromamba-dir)))
+    (format (concat "tmp=$(mktemp -d) && "
+                    "mkdir -p %s/bin && "
+                    "curl -LfsS %s -o $tmp/micromamba.tar.bz2 && "
+                    "tar -xjf $tmp/micromamba.tar.bz2 -C $tmp bin/micromamba && "
+                    "cp $tmp/bin/micromamba %s/bin/micromamba && "
+                    "chmod +x %s/bin/micromamba && "
+                    "rm -rf $tmp")
+            dir (shell-quote-argument url) dir dir)))
+
+(defun tt/micromamba-install ()
+  "Install TT's managed micromamba executable after confirmation."
+  (interactive)
+  (if (tt/micromamba-executable)
+      (message "micromamba already available: %s" (tt/micromamba-executable))
+    (tt/conda-env-run (tt/micromamba-install-command))))
+
+(defun tt/conda-env-exists-p ()
+  "Non-nil when TT's Emacs-local micromamba environment exists."
+  (file-directory-p tt/conda-env-bin-dir))
+
+(defun tt/conda-env-command (action packages)
+  "Build a micromamba ACTION command for PACKAGES using conda-forge."
+  (let ((micromamba (tt/micromamba-executable)))
+    (unless micromamba
+      (error "No micromamba executable found; run M-x tt/micromamba-install"))
+    (mapconcat #'identity
+               (append (list (shell-quote-argument micromamba)
+                             action
+                             "-y"
+                             "-p"
+                             (shell-quote-argument tt/conda-env-prefix)
+                             "-c"
+                             "conda-forge")
+                       (mapcar #'shell-quote-argument packages))
+               " ")))
+
+(defun tt/conda-env-run (command)
+  "Ask before running COMMAND asynchronously."
+  (when (y-or-n-p (format "Run command? %s " command))
+    (async-shell-command command "*tt/conda-env*")
+    (message "Started micromamba env command in *tt/conda-env*.")))
+
+(defun tt/conda-env-create (&optional recreate)
+  "Create TT's Emacs-local micromamba environment.
+
+With prefix argument RECREATE, offer to delete and recreate the existing env."
+  (interactive "P")
+  (cond
+   ((and (tt/conda-env-exists-p)
+         (not recreate))
+    (message "Micromamba env already exists at %s" tt/conda-env-prefix))
+   ((and (tt/conda-env-exists-p)
+         recreate
+         (y-or-n-p (format "Delete and recreate %s? " tt/conda-env-prefix)))
+    (delete-directory tt/conda-env-prefix t)
+    (tt/conda-env-run (tt/conda-env-command "create" tt/conda-env-core-packages)))
+   ((not (tt/conda-env-exists-p))
+    (tt/conda-env-run (tt/conda-env-command "create" tt/conda-env-core-packages)))))
+
+(defun tt/conda-env-install-core ()
+  "Install or update TT's core Emacs-local micromamba packages."
+  (interactive)
+  (tt/conda-env-run (tt/conda-env-command "install" tt/conda-env-core-packages)))
+
+(defun tt/conda-env-missing-core-tools ()
+  "Return core tool executables missing from `exec-path'."
+  (seq-remove #'executable-find tt/conda-env-core-tools))
+
+(defun tt/conda-env-report ()
+  "Report TT's Emacs-local micromamba environment status."
+  (interactive)
+  (let ((missing (tt/conda-env-missing-core-tools)))
+    (message "micromamba=%s env=%s missing=%s"
+             (or (tt/micromamba-executable) "missing")
+             (if (tt/conda-env-exists-p) "present" "missing")
+             (if missing (mapconcat #'identity missing ", ") "none"))))
+
+(tt/conda-env-add-to-path)
+(unless (tt/conda-env-exists-p)
+  (message "Emacs-local micromamba env is missing. Run M-x tt/conda-env-create when needed."))
+(unless (tt/micromamba-executable)
+  (message "No micromamba executable found. Run M-x tt/micromamba-install if an Emacs-local env is needed."))
+
+;;; 5. Theme setup
 
 ;; The tt/ namespace functions will be moved here
 (defun tt/moe-light-base ()
