@@ -29,6 +29,7 @@
 
 
 
+(require 'cl-lib)
 (require 'package-vc)
 (require 'package)
 
@@ -102,6 +103,10 @@
 (defconst tt/vendor-dir
   (expand-file-name "vendor" (file-name-directory (or load-file-name buffer-file-name)))
   "Absolute path to vendored third-party Elisp.")
+
+(defconst tt/snippets-dir
+  (expand-file-name "snippets" (file-name-directory (or load-file-name buffer-file-name)))
+  "Absolute path to repo-managed Yasnippet snippets.")
 
 
 ;;;; 2.2 tt/ namespace defuns
@@ -216,6 +221,237 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
     )
   )
 
+;;;; 2.3 Emacs-local micromamba environment
+
+(defconst tt/micromamba-dir
+  (expand-file-name "micromamba" user-emacs-directory)
+  "Directory for TT's managed micromamba executable.")
+
+(defconst tt/micromamba-managed-executable
+  (expand-file-name "bin/micromamba" tt/micromamba-dir)
+  "Path to TT's managed micromamba executable.")
+
+(defconst tt/conda-env-prefix
+  (expand-file-name "conda-env" user-emacs-directory)
+  "Prefix for TT's Emacs-local micromamba environment.")
+
+(defconst tt/conda-env-bin-dir
+  (expand-file-name "bin" tt/conda-env-prefix)
+  "Bin directory for TT's Emacs-local micromamba environment.")
+
+(defconst tt/conda-env-package-alist
+  '((core
+     :packages ("python" "pip" "uv" "ruff" "nodejs" "ripgrep" "fd-find")
+     :tools ("python" "pip" "uv" "ruff" "node" "npm" "rg" "fd"))
+    (python-ide
+     :packages ("ty" "ruff")
+     :tools ("ty" "ruff")))
+  "Package/tool groups for TT's Emacs-local micromamba environment.")
+
+(defun tt/conda-env-group-plist (group)
+  "Return package GROUP plist from `tt/conda-env-package-alist'."
+  (or (alist-get group tt/conda-env-package-alist)
+      (error "Unknown conda env package group: %s" group)))
+
+(defun tt/conda-env-group-packages (group)
+  "Return conda-forge packages for GROUP."
+  (plist-get (tt/conda-env-group-plist group) :packages))
+
+(defun tt/conda-env-group-tools (group)
+  "Return executable names expected for GROUP."
+  (plist-get (tt/conda-env-group-plist group) :tools))
+
+(defun tt/conda-env-packages (&rest groups)
+  "Return de-duplicated conda-forge packages for GROUPS."
+  (delete-dups (apply #'append (mapcar #'tt/conda-env-group-packages groups))))
+
+(defun tt/conda-env-tools (&rest groups)
+  "Return de-duplicated executable names expected for GROUPS."
+  (delete-dups (apply #'append (mapcar #'tt/conda-env-group-tools groups))))
+
+(defun tt/conda-env-add-to-path ()
+  "Add TT's Emacs-local micromamba environment to `exec-path' and PATH.
+
+This is harmless when the environment does not exist yet."
+  (add-to-list 'exec-path tt/conda-env-bin-dir)
+  (let* ((path (or (getenv "PATH") ""))
+         (parts (split-string path path-separator t)))
+    (unless (member tt/conda-env-bin-dir parts)
+      (setenv "PATH" (concat tt/conda-env-bin-dir path-separator path)))))
+
+(defun tt/micromamba-platform ()
+  "Return the micromamba download platform for this system."
+  (pcase (list system-type system-configuration)
+    (`(darwin ,config) (if (string-match-p "aarch64\\|arm64" config) "osx-arm64" "osx-64"))
+    (`(gnu/linux ,config) (if (string-match-p "aarch64\\|arm64" config) "linux-aarch64" "linux-64"))
+    (_ (error "Unsupported micromamba platform: %s %s" system-type system-configuration))))
+
+(defun tt/micromamba-url ()
+  "Return the official latest micromamba download URL for this system."
+  (format "https://micro.mamba.pm/api/micromamba/%s/latest" (tt/micromamba-platform)))
+
+(defun tt/micromamba-executable ()
+  "Return system micromamba or TT's managed micromamba, or nil."
+  (or (executable-find "micromamba")
+      (when (file-executable-p tt/micromamba-managed-executable)
+        tt/micromamba-managed-executable)))
+
+(defun tt/micromamba-install-command ()
+  "Build the command that installs micromamba under `tt/micromamba-dir'."
+  (let ((url (tt/micromamba-url))
+        (dir (shell-quote-argument tt/micromamba-dir)))
+    (format (concat "tmp=$(mktemp -d) && "
+                    "mkdir -p %s/bin && "
+                    "curl -LfsS %s -o $tmp/micromamba.tar.bz2 && "
+                    "tar -xjf $tmp/micromamba.tar.bz2 -C $tmp bin/micromamba && "
+                    "cp $tmp/bin/micromamba %s/bin/micromamba && "
+                    "chmod +x %s/bin/micromamba && "
+                    "rm -rf $tmp")
+            dir (shell-quote-argument url) dir dir)))
+
+(defun tt/micromamba-install ()
+  "Install TT's managed micromamba executable after confirmation."
+  (interactive)
+  (if (tt/micromamba-executable)
+      (message "micromamba already available: %s" (tt/micromamba-executable))
+    (tt/conda-env-run (tt/micromamba-install-command))))
+
+(defun tt/conda-env-exists-p ()
+  "Non-nil when TT's Emacs-local micromamba environment exists."
+  (file-directory-p tt/conda-env-bin-dir))
+
+(defun tt/conda-env-executable (name)
+  "Return executable NAME from TT's env, falling back to `exec-path'."
+  (let ((local (expand-file-name name tt/conda-env-bin-dir)))
+    (or (when (file-executable-p local) local)
+        (executable-find name))))
+
+(defun tt/conda-env-command (action packages)
+  "Build a micromamba ACTION command for PACKAGES using conda-forge."
+  (let ((micromamba (tt/micromamba-executable)))
+    (unless micromamba
+      (error "No micromamba executable found; run M-x tt/micromamba-install"))
+    (mapconcat #'identity
+               (append (list (shell-quote-argument micromamba)
+                             action
+                             "-y"
+                             "-p"
+                             (shell-quote-argument tt/conda-env-prefix)
+                             "--override-channels"
+                             "-c"
+                             "conda-forge")
+                       (mapcar #'shell-quote-argument packages))
+               " ")))
+
+(defun tt/conda-env-run (command)
+  "Ask before running COMMAND asynchronously."
+  (when (y-or-n-p (format "Run command? %s " command))
+    (async-shell-command command "*tt/conda-env*")
+    (message "Started micromamba env command in *tt/conda-env*.")))
+
+(defun tt/conda-env-create (&optional recreate)
+  "Create TT's Emacs-local micromamba environment.
+
+With prefix argument RECREATE, offer to delete and recreate the existing env."
+  (interactive "P")
+  (cond
+   ((and (tt/conda-env-exists-p)
+         (not recreate))
+    (message "Micromamba env already exists at %s" tt/conda-env-prefix))
+   ((and (tt/conda-env-exists-p)
+         recreate
+         (y-or-n-p (format "Delete and recreate %s? " tt/conda-env-prefix)))
+    (delete-directory tt/conda-env-prefix t)
+    (tt/conda-env-run (tt/conda-env-command "create" (tt/conda-env-packages 'core))))
+   ((not (tt/conda-env-exists-p))
+    (tt/conda-env-run (tt/conda-env-command "create" (tt/conda-env-packages 'core))))))
+
+(defun tt/conda-env-install-core ()
+  "Install or update TT's core Emacs-local micromamba packages."
+  (interactive)
+  (tt/conda-env-run (tt/conda-env-command "install" (tt/conda-env-packages 'core))))
+
+(defun tt/conda-env-missing-core-tools ()
+  "Return core tool executables missing from `exec-path'."
+  (seq-remove #'executable-find (tt/conda-env-tools 'core)))
+
+(defun tt/conda-env-report ()
+  "Report TT's Emacs-local micromamba environment status."
+  (interactive)
+  (let ((missing (tt/conda-env-missing-core-tools)))
+    (message "micromamba=%s env=%s missing=%s"
+             (or (tt/micromamba-executable) "missing")
+             (if (tt/conda-env-exists-p) "present" "missing")
+             (if missing (mapconcat #'identity missing ", ") "none"))))
+
+(defun tt/python-ide-missing-tools ()
+  "Return Python IDE tool executables missing from `exec-path'."
+  (seq-remove #'executable-find (tt/conda-env-tools 'python-ide)))
+
+(defun tt/python-ide-install-tools ()
+  "Install TT's Python IDE tools into the Emacs-local micromamba env."
+  (interactive)
+  (cond
+   ((not (tt/micromamba-executable))
+    (message "No micromamba found. Run M-x tt/micromamba-install first."))
+   ((not (tt/conda-env-exists-p))
+    (when (y-or-n-p "Emacs-local env is missing. Create it with Python IDE tools? ")
+      (tt/conda-env-run
+       (tt/conda-env-command "create"
+                             (tt/conda-env-packages 'core 'python-ide)))))
+   (t
+    (tt/conda-env-run (tt/conda-env-command "install" (tt/conda-env-packages 'python-ide))))))
+
+(defconst tt/python-ide-local-env-names
+  '(".venv" "venv" ".env" "env")
+  "Project-local Python environment directory names recognized by TT.")
+
+(defun tt/python-ide-project-root ()
+  "Return a conservative project root for Python interpreter discovery."
+  (or (locate-dominating-file default-directory "pyproject.toml")
+      (locate-dominating-file default-directory "setup.py")
+      (locate-dominating-file default-directory ".git")
+      default-directory))
+
+(defun tt/python-ide-env-bin-dir (env-dir)
+  "Return ENV-DIR's executable directory."
+  (expand-file-name (if (eq system-type 'windows-nt) "Scripts" "bin") env-dir))
+
+(defun tt/python-ide-interpreter-in-env (env-dir)
+  "Return the Python executable in ENV-DIR, or nil."
+  (let ((python (expand-file-name (if (eq system-type 'windows-nt) "python.exe" "python")
+                                  (tt/python-ide-env-bin-dir env-dir))))
+    (when (file-executable-p python)
+      python)))
+
+(defun tt/python-ide-current-interpreter ()
+  "Return the best Python interpreter for the current buffer.
+
+This intentionally treats conda, virtualenv, and uv-created environments
+equally: an environment is just a prefix containing a Python executable."
+  (or (when-let ((prefix (getenv "CONDA_PREFIX")))
+        (tt/python-ide-interpreter-in-env prefix))
+      (when-let ((prefix (getenv "VIRTUAL_ENV")))
+        (tt/python-ide-interpreter-in-env prefix))
+      (let ((root (file-name-as-directory (tt/python-ide-project-root))))
+        (seq-some (lambda (name)
+                    (tt/python-ide-interpreter-in-env (expand-file-name name root)))
+                  tt/python-ide-local-env-names))
+      (executable-find "python3")
+      (executable-find "python")))
+
+(defun tt/python-ide-report ()
+  "Report Python IDE tool and interpreter availability."
+  (interactive)
+  (let ((missing (tt/python-ide-missing-tools))
+        (python (tt/python-ide-current-interpreter)))
+    (message "Python IDE: python=%s ty=%s ruff=%s missing=%s"
+             (or python "missing")
+             (or (tt/conda-env-executable "ty") "missing")
+             (or (tt/conda-env-executable "ruff") "missing")
+             (if missing (mapconcat #'identity missing ", ") "none"))))
+
+
 ;;; 3. Global setup and keybindings
 
 ;; Use `emacs' as the one-stop place for built-in setup and
@@ -223,6 +459,12 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
 
 (use-package emacs
   :config
+  (tt/conda-env-add-to-path)
+  (unless (tt/conda-env-exists-p)
+    (message "Emacs-local micromamba env is missing. Run M-x tt/conda-env-create when needed."))
+  (unless (tt/micromamba-executable)
+    (message "No micromamba executable found. Run M-x tt/micromamba-install if an Emacs-local env is needed."))
+
   (global-set-key (kbd "C-c t l") #'tt/select-current-line)
   (global-set-key (kbd "C-c t z") #'global-text-scale-adjust)
   (global-set-key (kbd "C-c t u") #'tt/update-packages)
@@ -303,7 +545,20 @@ After the install finishes, reload with `M-x load-file' or restart Emacs."
     (global-set-key (kbd "M-s-<left>") #'windmove-left)
     (global-set-key (kbd "M-s-<right>") #'windmove-right)))
 
-;;;; 3.2 Vendored packages for editing / appearance (light-weight)
+;;;; 3.2 Editing, snippets, and version control packages
+
+(use-package magit
+  :commands (magit-status)
+  :bind (("C-M-g" . magit-status)))
+
+(use-package yasnippet
+  :diminish yas-minor-mode
+  :commands (yas-minor-mode yas-global-mode yas-expand yas-new-snippet yas-visit-snippet-file)
+  :config
+  (setq yas-snippet-dirs (list tt/snippets-dir))
+  (yas-global-mode 1))
+
+;;;; 3.3 Vendored packages for editing / appearance (light-weight)
 
 ;; fake text
 (use-package lorem-ipsum
@@ -452,146 +707,6 @@ extra editing location."
   (add-to-list 'mc/cmds-to-run-once #'multiple-cursors-mode))
 
 
-;;; 4. Emacs-local micromamba environment
-
-(defconst tt/micromamba-dir
-  (expand-file-name "micromamba" user-emacs-directory)
-  "Directory for TT's managed micromamba executable.")
-
-(defconst tt/micromamba-managed-executable
-  (expand-file-name "bin/micromamba" tt/micromamba-dir)
-  "Path to TT's managed micromamba executable.")
-
-(defconst tt/conda-env-prefix
-  (expand-file-name "conda-env" user-emacs-directory)
-  "Prefix for TT's Emacs-local micromamba environment.")
-
-(defconst tt/conda-env-bin-dir
-  (expand-file-name "bin" tt/conda-env-prefix)
-  "Bin directory for TT's Emacs-local micromamba environment.")
-
-(defconst tt/conda-env-core-packages
-  '("python" "pip" "uv" "ruff" "nodejs" "ripgrep" "fd-find")
-  "Core conda-forge packages for TT's Emacs-local tool environment.")
-
-(defconst tt/conda-env-core-tools
-  '("python" "pip" "uv" "ruff" "node" "npm" "rg" "fd")
-  "Executable names expected from `tt/conda-env-core-packages'.")
-
-(defun tt/conda-env-add-to-path ()
-  "Add TT's Emacs-local micromamba environment to `exec-path' and PATH.
-
-This is harmless when the environment does not exist yet."
-  (add-to-list 'exec-path tt/conda-env-bin-dir)
-  (let* ((path (or (getenv "PATH") ""))
-         (parts (split-string path path-separator t)))
-    (unless (member tt/conda-env-bin-dir parts)
-      (setenv "PATH" (concat tt/conda-env-bin-dir path-separator path)))))
-
-(defun tt/micromamba-platform ()
-  "Return the micromamba download platform for this system."
-  (pcase (list system-type system-configuration)
-    (`(darwin ,config) (if (string-match-p "aarch64\\|arm64" config) "osx-arm64" "osx-64"))
-    (`(gnu/linux ,config) (if (string-match-p "aarch64\\|arm64" config) "linux-aarch64" "linux-64"))
-    (_ (error "Unsupported micromamba platform: %s %s" system-type system-configuration))))
-
-(defun tt/micromamba-url ()
-  "Return the official latest micromamba download URL for this system."
-  (format "https://micro.mamba.pm/api/micromamba/%s/latest" (tt/micromamba-platform)))
-
-(defun tt/micromamba-executable ()
-  "Return system micromamba or TT's managed micromamba, or nil."
-  (or (executable-find "micromamba")
-      (when (file-executable-p tt/micromamba-managed-executable)
-        tt/micromamba-managed-executable)))
-
-(defun tt/micromamba-install-command ()
-  "Build the command that installs micromamba under `tt/micromamba-dir'."
-  (let ((url (tt/micromamba-url))
-        (dir (shell-quote-argument tt/micromamba-dir)))
-    (format (concat "tmp=$(mktemp -d) && "
-                    "mkdir -p %s/bin && "
-                    "curl -LfsS %s -o $tmp/micromamba.tar.bz2 && "
-                    "tar -xjf $tmp/micromamba.tar.bz2 -C $tmp bin/micromamba && "
-                    "cp $tmp/bin/micromamba %s/bin/micromamba && "
-                    "chmod +x %s/bin/micromamba && "
-                    "rm -rf $tmp")
-            dir (shell-quote-argument url) dir dir)))
-
-(defun tt/micromamba-install ()
-  "Install TT's managed micromamba executable after confirmation."
-  (interactive)
-  (if (tt/micromamba-executable)
-      (message "micromamba already available: %s" (tt/micromamba-executable))
-    (tt/conda-env-run (tt/micromamba-install-command))))
-
-(defun tt/conda-env-exists-p ()
-  "Non-nil when TT's Emacs-local micromamba environment exists."
-  (file-directory-p tt/conda-env-bin-dir))
-
-(defun tt/conda-env-command (action packages)
-  "Build a micromamba ACTION command for PACKAGES using conda-forge."
-  (let ((micromamba (tt/micromamba-executable)))
-    (unless micromamba
-      (error "No micromamba executable found; run M-x tt/micromamba-install"))
-    (mapconcat #'identity
-               (append (list (shell-quote-argument micromamba)
-                             action
-                             "-y"
-                             "-p"
-                             (shell-quote-argument tt/conda-env-prefix)
-                             "-c"
-                             "conda-forge")
-                       (mapcar #'shell-quote-argument packages))
-               " ")))
-
-(defun tt/conda-env-run (command)
-  "Ask before running COMMAND asynchronously."
-  (when (y-or-n-p (format "Run command? %s " command))
-    (async-shell-command command "*tt/conda-env*")
-    (message "Started micromamba env command in *tt/conda-env*.")))
-
-(defun tt/conda-env-create (&optional recreate)
-  "Create TT's Emacs-local micromamba environment.
-
-With prefix argument RECREATE, offer to delete and recreate the existing env."
-  (interactive "P")
-  (cond
-   ((and (tt/conda-env-exists-p)
-         (not recreate))
-    (message "Micromamba env already exists at %s" tt/conda-env-prefix))
-   ((and (tt/conda-env-exists-p)
-         recreate
-         (y-or-n-p (format "Delete and recreate %s? " tt/conda-env-prefix)))
-    (delete-directory tt/conda-env-prefix t)
-    (tt/conda-env-run (tt/conda-env-command "create" tt/conda-env-core-packages)))
-   ((not (tt/conda-env-exists-p))
-    (tt/conda-env-run (tt/conda-env-command "create" tt/conda-env-core-packages)))))
-
-(defun tt/conda-env-install-core ()
-  "Install or update TT's core Emacs-local micromamba packages."
-  (interactive)
-  (tt/conda-env-run (tt/conda-env-command "install" tt/conda-env-core-packages)))
-
-(defun tt/conda-env-missing-core-tools ()
-  "Return core tool executables missing from `exec-path'."
-  (seq-remove #'executable-find tt/conda-env-core-tools))
-
-(defun tt/conda-env-report ()
-  "Report TT's Emacs-local micromamba environment status."
-  (interactive)
-  (let ((missing (tt/conda-env-missing-core-tools)))
-    (message "micromamba=%s env=%s missing=%s"
-             (or (tt/micromamba-executable) "missing")
-             (if (tt/conda-env-exists-p) "present" "missing")
-             (if missing (mapconcat #'identity missing ", ") "none"))))
-
-(tt/conda-env-add-to-path)
-(unless (tt/conda-env-exists-p)
-  (message "Emacs-local micromamba env is missing. Run M-x tt/conda-env-create when needed."))
-(unless (tt/micromamba-executable)
-  (message "No micromamba executable found. Run M-x tt/micromamba-install if an Emacs-local env is needed."))
-
 ;;; 5. Theme setup
 
 ;; The tt/ namespace functions will be moved here
@@ -726,7 +841,128 @@ With prefix argument RECREATE, offer to delete and recreate the existing env."
                (mapconcat #'symbol-name missing ", ")))))
 
 
-;;; 6. Others
+;;; 6. Python IDE setup
+
+;; Aim for a modern but understandable Python editing stack:
+;; treesit-auto chooses tree-sitter modes, Eglot provides LSP, Flymake
+;; displays diagnostics, Ty provides type-aware language service, and
+;; Ruff provides fast formatting/linting.  Python environments are treated
+;; by interpreter path only, so conda, virtualenv, and uv-created envs are
+;; equal as long as they contain a Python executable. Tool installation is
+;; explicit; nothing is installed automatically at startup.
+
+(defvar tt/python-ide-format-on-save nil
+  "Non-nil means format Python buffers with Ruff before saving.")
+
+(defun tt/python-ide-ruff-format-buffer ()
+  "Format the current buffer with central `ruff format'."
+  (interactive)
+  (let ((ruff (tt/conda-env-executable "ruff")))
+    (unless ruff
+      (user-error "ruff executable not found; run M-x tt/python-ide-install-tools"))
+    (let* ((file (or buffer-file-name "stdin.py"))
+           (input (current-buffer))
+           (output (generate-new-buffer " *ruff format*")))
+      (unwind-protect
+          (let ((status (with-current-buffer input
+                          (call-process-region
+                           (point-min) (point-max)
+                           ruff nil (list output t) nil
+                           "format" "--stdin-filename" file "-"))))
+            (if (zerop status)
+                (let ((point (point)))
+                  (erase-buffer)
+                  (insert-buffer-substring output)
+                  (goto-char (min point (point-max)))
+                  (message "Formatted buffer with Ruff."))
+              (with-current-buffer output
+                (user-error "ruff format failed: %s" (string-trim (buffer-string))))))
+        (kill-buffer output)))))
+
+(defun tt/python-ide-format-buffer ()
+  "Format the current Python buffer using Ruff."
+  (interactive)
+  (tt/python-ide-ruff-format-buffer))
+
+(defun tt/python-ide-before-save ()
+  "Maybe format Python buffers before saving."
+  (when tt/python-ide-format-on-save
+    (tt/python-ide-format-buffer)))
+
+(defun tt/python-ide-refresh-eglot-server-program ()
+  "Configure Eglot to launch the central Ty executable for Python."
+  (require 'eglot)
+  (let ((ty (tt/conda-env-executable "ty")))
+    (setq eglot-server-programs
+          (cl-remove '(python-mode python-ts-mode) eglot-server-programs
+                     :key #'car :test #'equal))
+    (add-to-list 'eglot-server-programs
+                 `((python-mode python-ts-mode) . (,(or ty "ty") "server")))))
+
+(defun tt/python-ide-start-eglot ()
+  "Start Eglot for Python, using central Ty when available.
+
+The Python interpreter is discovered separately and made buffer-local via
+`python-shell-interpreter'.  Ty may also use project config/environment
+according to its own rules."
+  (interactive)
+  (if (tt/conda-env-executable "ty")
+      (progn
+        (tt/python-ide-refresh-eglot-server-program)
+        (eglot-ensure))
+    (message "ty executable not found. Run M-x tt/python-ide-install-tools.")))
+
+(defun tt/python-ide-setup-buffer ()
+  "Buffer-local setup for Python IDE behavior."
+  (setq-local tab-width 4)
+  (when-let ((python (tt/python-ide-current-interpreter)))
+    (setq-local python-shell-interpreter python))
+  (add-hook 'before-save-hook #'tt/python-ide-before-save nil t)
+  ;; Candidate bindings to test later; keep the default completion key
+  ;; (`M-TAB' / `completion-at-point') untouched for now.
+  ;; (local-set-key (kbd "C-c p e") #'tt/python-ide-start-eglot)
+  ;; (local-set-key (kbd "C-c p f") #'tt/python-ide-format-buffer)
+  ;; (local-set-key (kbd "C-c p d") #'flymake-show-buffer-diagnostics)
+  ;; (local-set-key (kbd "C-c p n") #'flymake-goto-next-error)
+  ;; (local-set-key (kbd "C-c p p") #'flymake-goto-prev-error)
+  ;; (local-set-key (kbd "C-c p a") #'eglot-code-actions)
+  ;; (local-set-key (kbd "C-c p i") #'tt/python-ide-install-tools)
+  ;; (local-set-key (kbd "C-c p r") #'tt/python-ide-report)
+  (tt/python-ide-start-eglot))
+
+
+(use-package flymake
+  :ensure nil
+  :commands (flymake-show-buffer-diagnostics
+             flymake-goto-next-error
+             flymake-goto-prev-error)
+  :config
+  (setq flymake-no-changes-timeout 0.5
+        flymake-start-on-save-buffer t
+        flymake-start-on-flymake-mode t))
+
+(use-package python
+  :ensure nil
+  :config
+  (add-hook 'python-mode-hook #'tt/python-ide-setup-buffer)
+  (when (fboundp 'python-ts-mode)
+    (add-hook 'python-ts-mode-hook #'tt/python-ide-setup-buffer)))
+
+(use-package eglot
+  :ensure nil
+  :commands (eglot eglot-ensure)
+  :config
+  (tt/python-ide-refresh-eglot-server-program)
+  (setq eglot-autoshutdown t
+        eglot-confirm-server-initiated-edits nil))
+
+(let ((missing (tt/python-ide-missing-tools)))
+  (when missing
+    (message "Python IDE tools missing: %s. Run M-x tt/python-ide-install-tools."
+             (mapconcat #'identity missing ", "))))
+
+
+;;; 7. Others
 
 (when (file-exists-p custom-file)
   (load custom-file nil 'nomessage))

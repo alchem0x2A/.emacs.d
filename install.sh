@@ -80,16 +80,22 @@ if command -v rsync >/dev/null 2>&1; then
     --include '/init.el' \
     --include '/vendor/' \
     --include '/vendor/***' \
+    --include '/snippets/' \
+    --include '/snippets/***' \
     --exclude '*' \
     "$SRC/" "$DEST/"
 else
   # Rsync not present: replace only the managed files/directories.
   rm -f "$DEST/init.el"
-  rm -rf "$DEST/vendor"
+  rm -rf "$DEST/vendor" "$DEST/snippets"
   cp "$SRC/init.el" "$DEST/init.el"
   if [ -d "$SRC/vendor" ]; then
     mkdir -p "$DEST/vendor"
     (cd "$SRC/vendor" && tar --exclude='*~' --exclude='*.elc' -cf - .) | (cd "$DEST/vendor" && tar -xf -)
+  fi
+  if [ -d "$SRC/snippets" ]; then
+    mkdir -p "$DEST/snippets"
+    (cd "$SRC/snippets" && tar --exclude='*~' --exclude='*.elc' -cf - .) | (cd "$DEST/snippets" && tar -xf -)
   fi
 fi
 
